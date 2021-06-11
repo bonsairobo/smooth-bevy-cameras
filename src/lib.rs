@@ -32,9 +32,9 @@
 //!
 //! ```rust
 //! let mut angles = LookAngles::from_vector(transform.look_direction());
-//! angles.add_pitch(0.1);
-//! angles.add_yaw(0.1);
-//! transform.offset_target_in_direction(angles.unit_vector());
+//! angles.add_pitch(delta.y);
+//! angles.add_yaw(delta.x);
+//! transform.target = transform.target + transform.radius() * angles.unit_vector();
 //! ```
 //!
 //! This is how the built-in controllers implement rotation controls.
