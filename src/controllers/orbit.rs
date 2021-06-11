@@ -135,7 +135,6 @@ pub fn control_system(
                 ControlEvent::Orbit(delta) => {
                     polar_vector.add_yaw(-delta.x);
                     polar_vector.add_pitch(delta.y);
-                    polar_vector.assert_not_looking_up();
                 }
                 ControlEvent::TranslateTarget(delta) => {
                     let right_dir = scene_transform.rotation * -Vec3::X;
@@ -144,6 +143,8 @@ pub fn control_system(
                 }
             }
         }
+
+        polar_vector.assert_not_looking_up();
 
         transform.offset_eye_in_direction(polar_vector.unit_vector());
     } else {
