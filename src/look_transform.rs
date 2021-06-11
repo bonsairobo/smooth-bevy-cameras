@@ -29,7 +29,7 @@ pub struct LookTransform {
 
 impl From<LookTransform> for Transform {
     fn from(t: LookTransform) -> Self {
-        p1_look_at_p2_transform(t.eye, t.target)
+        eye_look_at_target_transform(t.eye, t.target)
     }
 }
 
@@ -51,12 +51,12 @@ impl LookTransform {
     }
 }
 
-fn p1_look_at_p2_transform(p1: Vec3, p2: Vec3) -> Transform {
-    // If p1 and p2 are very close, we avoid imprecision issues by keeping the look vector a unit vector.
-    let look_vector = (p2 - p1).normalize();
-    let look_at = p1 + look_vector;
+fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
+    // If eye and target are very close, we avoid imprecision issues by keeping the look vector a unit vector.
+    let look_vector = (target - eye).normalize();
+    let look_at = eye + look_vector;
 
-    Transform::from_translation(p1).looking_at(look_at, Vec3::Y)
+    Transform::from_translation(eye).looking_at(look_at, Vec3::Y)
 }
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
