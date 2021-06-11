@@ -1,4 +1,4 @@
-use crate::{LookTransform, LookTransformBundle, PolarDirection, Smoother};
+use crate::{LookAngles, LookTransform, LookTransformBundle, Smoother};
 
 use bevy::{
     app::prelude::*,
@@ -157,10 +157,10 @@ pub fn control_system(
 
     if controller.enabled {
         let look_vector = transform.look_direction();
-        let mut polar_vector = PolarDirection::from_vector(look_vector);
+        let mut look_angles = LookAngles::from_vector(look_vector);
         let forward_vector = Vec3::new(look_vector.x, 0.0, look_vector.z).normalize();
 
-        let yaw_rot = Quat::from_axis_angle(Vec3::Y, polar_vector.get_yaw());
+        let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
         let rot_x = yaw_rot * Vec3::X;
         let rot_y = yaw_rot * Vec3::Y;
 
@@ -168,13 +168,13 @@ pub fn control_system(
             match event {
                 ControlEvent::Locomotion(delta) => {
                     // Translates forward/backward and rotates about the Y axis.
-                    polar_vector.add_yaw(-delta.x);
+                    look_angles.add_yaw(-delta.x);
                     transform.eye -= delta.y * forward_vector;
                 }
                 ControlEvent::Rotate(delta) => {
                     // Rotates with pitch and yaw.
-                    polar_vector.add_yaw(-delta.x);
-                    polar_vector.add_pitch(-delta.y);
+                    look_angles.add_yaw(-delta.x);
+                    look_angles.add_pitch(-delta.y);
                 }
                 ControlEvent::TranslateEye(delta) => {
                     // Translates up/down (Y) and left/right (X).
@@ -183,9 +183,9 @@ pub fn control_system(
             }
         }
 
-        polar_vector.assert_not_looking_up();
+        look_angles.assert_not_looking_up();
 
-        transform.offset_target_in_direction(polar_vector.unit_vector());
+        transform.offset_target_in_direction(look_angles.unit_vector());
     } else {
         events.iter(); // Drop the events.
     }

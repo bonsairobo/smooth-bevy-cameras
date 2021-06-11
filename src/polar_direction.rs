@@ -5,16 +5,16 @@ const PI: f32 = std::f32::consts::PI;
 
 /// A (yaw, pitch) pair representing a direction.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct PolarDirection {
+pub struct LookAngles {
     // The fields are protected to keep them in an allowable range for the camera transform.
     yaw: f32,
     pitch: f32,
 }
 
-impl PolarDirection {
+impl LookAngles {
     pub fn from_vector(v: Vec3) -> Self {
         let mut p = Self::default();
-        p.set_vector(v);
+        p.set_direction(v);
 
         p
     }
@@ -23,7 +23,7 @@ impl PolarDirection {
         unit_vector_from_yaw_and_pitch(self.yaw, self.pitch)
     }
 
-    pub fn set_vector(&mut self, v: Vec3) {
+    pub fn set_direction(&mut self, v: Vec3) {
         let (yaw, pitch) = yaw_and_pitch_from_vector(v);
         self.set_yaw(yaw);
         self.set_pitch(pitch);

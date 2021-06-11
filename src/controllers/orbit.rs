@@ -1,4 +1,4 @@
-use crate::{LookTransform, LookTransformBundle, PolarDirection, Smoother};
+use crate::{LookAngles, LookTransform, LookTransformBundle, Smoother};
 
 use bevy::{
     app::prelude::*,
@@ -128,13 +128,13 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let mut polar_vector = PolarDirection::from_vector(-transform.look_direction());
+        let mut look_angles = LookAngles::from_vector(-transform.look_direction());
 
         for event in events.iter() {
             match event {
                 ControlEvent::Orbit(delta) => {
-                    polar_vector.add_yaw(-delta.x);
-                    polar_vector.add_pitch(delta.y);
+                    look_angles.add_yaw(-delta.x);
+                    look_angles.add_pitch(delta.y);
                 }
                 ControlEvent::TranslateTarget(delta) => {
                     let right_dir = scene_transform.rotation * -Vec3::X;
@@ -144,9 +144,9 @@ pub fn control_system(
             }
         }
 
-        polar_vector.assert_not_looking_up();
+        look_angles.assert_not_looking_up();
 
-        transform.offset_eye_in_direction(polar_vector.unit_vector());
+        transform.offset_eye_in_direction(look_angles.unit_vector());
     } else {
         events.iter(); // Drop the events.
     }
