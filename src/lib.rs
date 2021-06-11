@@ -54,8 +54,8 @@
 
 pub mod controllers;
 
+mod look_angles;
 mod look_transform;
-mod polar_direction;
 
+pub use look_angles::*;
 pub use look_transform::*;
-pub use polar_direction::*;
