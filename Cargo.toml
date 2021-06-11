@@ -12,3 +12,9 @@ serde = "1.0"
 version = "0.5"
 features = ["render"]
 default-features = false
+
+[dev-dependencies]
+bevy = { version = "0.5", default-features = false, features = ["render", "bevy_winit", "bevy_wgpu", "bevy_gltf"] }
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+bevy = { version = "0.5", default-features = false, features = [ "x11", "wayland" ] }
