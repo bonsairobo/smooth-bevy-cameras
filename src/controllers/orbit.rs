@@ -112,14 +112,14 @@ pub fn default_input_map(
         cursor_delta += event.delta;
     }
 
+    if keyboard.pressed(KeyCode::LControl) {
+        events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
+    }
+
     if mouse_buttons.pressed(MouseButton::Right) {
-        if keyboard.pressed(KeyCode::LControl) {
-            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
-        } else {
-            events.send(ControlEvent::TranslateTarget(
-                mouse_translate_sensitivity * cursor_delta,
-            ));
-        }
+        events.send(ControlEvent::TranslateTarget(
+            mouse_translate_sensitivity * cursor_delta,
+        ));
     }
 
     let mut scalar = 1.0;

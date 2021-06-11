@@ -37,7 +37,13 @@
 //! These plugins depend on the `LookTransformPlugin`:
 //!
 //! - `UnrealCameraPlugin + UnrealCameraBundle`
+//!   - Left mouse drag: Locomotion
+//!   - Right mouse drag: Rotate camera
+//!   - Left and Right mouse drag: Pan camera
 //! - `OrbitCameraPlugin + OrbitCameraBundle`
+//!   - CTRL + mouse drag: Rotate camera
+//!   - Right mouse drag: Pan camera
+//!   - Mouse wheel: Zoom
 
 pub mod controllers;
 
