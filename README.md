@@ -48,11 +48,15 @@ This is how the built-in controllers implement rotation controls.
 
 These plugins depend on the `LookTransformPlugin`:
 
-- `UnrealCameraPlugin + UnrealCameraBundle`
-  - Left mouse drag: Locomotion
-  - Right mouse drag: Rotate camera
-  - Left and Right mouse drag: Pan camera
+- `FpsCameraPlugin + FpsCameraBundle`
+  - WASD: Translate on the XZ plane
+  - Shift/Space: Translate along the Y axis
+  - Mouse: Rotate camera
 - `OrbitCameraPlugin + OrbitCameraBundle`
   - CTRL + mouse drag: Rotate camera
   - Right mouse drag: Pan camera
   - Mouse wheel: Zoom
+- `UnrealCameraPlugin + UnrealCameraBundle`
+  - Left mouse drag: Locomotion
+  - Right mouse drag: Rotate camera
+  - Left and Right mouse drag: Pan camera
