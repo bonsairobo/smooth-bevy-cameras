@@ -78,7 +78,7 @@ impl Default for UnrealCameraController {
 pub enum ControlEvent {
     Locomotion(Vec2),
     Rotate(Vec2),
-    Translate(Vec2),
+    TranslateEye(Vec2),
 }
 
 pub fn default_input_map(
@@ -88,6 +88,7 @@ pub fn default_input_map(
     mouse_buttons: Res<Input<MouseButton>>,
     controllers: Query<&UnrealCameraController>,
 ) {
+    // Can only control one camera at a time.
     let controller = if let Some(controller) = controllers.iter().next() {
         controller
     } else {
@@ -115,7 +116,7 @@ pub fn default_input_map(
         mouse_buttons.pressed(MouseButton::Right),
     ) {
         (true, true) => {
-            events.send(ControlEvent::Translate(
+            events.send(ControlEvent::TranslateEye(
                 mouse_translate_sensitivity * mouse_delta,
             ));
         }
@@ -137,7 +138,7 @@ pub fn default_input_map(
         trackpad_delta.x += event.x;
         trackpad_delta.y += event.y;
     }
-    events.send(ControlEvent::Translate(
+    events.send(ControlEvent::TranslateEye(
         trackpad_translate_sensitivity * trackpad_delta,
     ));
 }
@@ -146,6 +147,7 @@ pub fn control_system(
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
+    // Can only control one camera at a time.
     let (controller, mut transform) =
         if let Some((controller, transform)) = cameras.iter_mut().next() {
             (controller, transform)
@@ -174,7 +176,7 @@ pub fn control_system(
                     polar_vector.add_yaw(-delta.x);
                     polar_vector.add_pitch(-delta.y);
                 }
-                ControlEvent::Translate(delta) => {
+                ControlEvent::TranslateEye(delta) => {
                     // Translates up/down (Y) and left/right (X).
                     transform.eye -= delta.x * rot_x + delta.y * rot_y;
                 }

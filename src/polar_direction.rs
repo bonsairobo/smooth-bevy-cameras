@@ -56,7 +56,7 @@ impl PolarDirection {
     }
 
     pub fn assert_not_looking_up(&self) {
-        let is_looking_up = relative_eq!(self.unit_vector().dot(Vec3::Y), -1.0);
+        let is_looking_up = relative_eq!(self.unit_vector().dot(Vec3::Y).abs(), 1.0);
 
         assert!(
             !is_looking_up,
@@ -68,7 +68,7 @@ impl PolarDirection {
 
 /// Returns pitch and yaw angles that rotates z unit vector to v. The yaw is applied first to z about the y axis to get z'. Then
 /// the pitch is applied about some axis orthogonal to z' in the XZ plane to get v.
-pub fn yaw_and_pitch_from_vector(v: Vec3) -> (f32, f32) {
+fn yaw_and_pitch_from_vector(v: Vec3) -> (f32, f32) {
     debug_assert_ne!(v, Vec3::ZERO);
 
     let y = Vec3::Y;
@@ -97,7 +97,7 @@ pub fn yaw_and_pitch_from_vector(v: Vec3) -> (f32, f32) {
     (yaw, pitch)
 }
 
-pub fn unit_vector_from_yaw_and_pitch(yaw: f32, pitch: f32) -> Vec3 {
+fn unit_vector_from_yaw_and_pitch(yaw: f32, pitch: f32) -> Vec3 {
     let ray = Mat3::from_rotation_y(yaw) * Vec3::Z;
     let pitch_axis = ray.cross(Vec3::Y);
 

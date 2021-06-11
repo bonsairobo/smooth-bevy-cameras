@@ -59,6 +59,7 @@ fn p1_look_at_p2_transform(p1: Vec3, p2: Vec3) -> Transform {
     Transform::from_translation(p1).looking_at(look_at, Vec3::Y)
 }
 
+/// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
@@ -76,8 +77,6 @@ impl Smoother {
         self.lag_weight = lag_weight;
     }
 
-    /// Do linear interpolation between the previous smoothed transform and the new transform. This is equivalent to an
-    /// exponential smoothing filter.
     pub fn smooth_transform(&mut self, new_tfm: &LookTransform) -> LookTransform {
         debug_assert!(0.0 <= self.lag_weight);
         debug_assert!(self.lag_weight < 1.0);

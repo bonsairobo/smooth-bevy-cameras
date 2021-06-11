@@ -50,12 +50,13 @@ impl OrbitCameraBundle {
     }
 }
 
+/// A 3rd person camera that orbits around the target.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct OrbitCameraController {
+    pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,
     pub mouse_translate_sensitivity: Vec2,
     pub smoothing_weight: f32,
-    pub enabled: bool,
 }
 
 impl Default for OrbitCameraController {
@@ -70,8 +71,8 @@ impl Default for OrbitCameraController {
 }
 
 pub enum ControlEvent {
-    Rotate(Vec2),
-    Translate(Vec2),
+    Orbit(Vec2),
+    TranslateTarget(Vec2),
 }
 
 pub fn default_input_map(
@@ -105,9 +106,9 @@ pub fn default_input_map(
 
     if mouse_buttons.pressed(MouseButton::Right) {
         if keyboard.pressed(KeyCode::LControl) {
-            events.send(ControlEvent::Rotate(mouse_rotate_sensitivity * mouse_delta));
+            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * mouse_delta));
         } else {
-            events.send(ControlEvent::Translate(
+            events.send(ControlEvent::TranslateTarget(
                 mouse_translate_sensitivity * mouse_delta,
             ));
         }
@@ -118,6 +119,7 @@ pub fn control_system(
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform)>,
 ) {
+    // Can only control one camera at a time.
     let (controller, mut transform, scene_transform) =
         if let Some((controller, transform, scene_transform)) = cameras.iter_mut().next() {
             (controller, transform, scene_transform)
@@ -130,12 +132,12 @@ pub fn control_system(
 
         for event in events.iter() {
             match event {
-                ControlEvent::Rotate(delta) => {
+                ControlEvent::Orbit(delta) => {
                     polar_vector.add_yaw(-delta.x);
                     polar_vector.add_pitch(delta.y);
                     polar_vector.assert_not_looking_up();
                 }
-                ControlEvent::Translate(delta) => {
+                ControlEvent::TranslateTarget(delta) => {
                     let right_dir = scene_transform.rotation * -Vec3::X;
                     let up_dir = scene_transform.rotation * Vec3::Y;
                     transform.target += delta.x * right_dir + delta.y * up_dir;
