@@ -106,9 +106,9 @@ pub fn default_input_map(
         return;
     }
 
-    let mut mouse_delta = Vec2::ZERO;
+    let mut cursor_delta = Vec2::ZERO;
     for event in mouse_motion_events.iter() {
-        mouse_delta += event.delta;
+        cursor_delta += event.delta;
     }
 
     match (
@@ -117,17 +117,19 @@ pub fn default_input_map(
     ) {
         (true, true) => {
             events.send(ControlEvent::TranslateEye(
-                mouse_translate_sensitivity * mouse_delta,
+                mouse_translate_sensitivity * cursor_delta,
             ));
         }
         (true, false) => {
             events.send(ControlEvent::Locomotion(Vec2::new(
-                mouse_rotate_sensitivity.x * mouse_delta.x,
-                mouse_translate_sensitivity.y * mouse_delta.y,
+                mouse_rotate_sensitivity.x * cursor_delta.x,
+                mouse_translate_sensitivity.y * cursor_delta.y,
             )));
         }
         (false, true) => {
-            events.send(ControlEvent::Rotate(mouse_rotate_sensitivity * mouse_delta));
+            events.send(ControlEvent::Rotate(
+                mouse_rotate_sensitivity * cursor_delta,
+            ));
         }
         _ => (),
     }
@@ -185,7 +187,7 @@ pub fn control_system(
 
         look_angles.assert_not_looking_up();
 
-        transform.offset_target_in_direction(look_angles.unit_vector());
+        transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
     } else {
         events.iter(); // Drop the events.
     }

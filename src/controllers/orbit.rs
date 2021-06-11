@@ -3,7 +3,10 @@ use crate::{LookAngles, LookTransform, LookTransformBundle, Smoother};
 use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
-    input::{mouse::MouseMotion, prelude::*},
+    input::{
+        mouse::{MouseMotion, MouseWheel},
+        prelude::*,
+    },
     math::prelude::*,
     render::prelude::*,
     transform::components::Transform,
@@ -56,6 +59,7 @@ pub struct OrbitCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,
     pub mouse_translate_sensitivity: Vec2,
+    pub mouse_wheel_zoom_sensitivity: f32,
     pub smoothing_weight: f32,
 }
 
@@ -64,6 +68,7 @@ impl Default for OrbitCameraController {
         Self {
             mouse_rotate_sensitivity: Vec2::splat(0.002),
             mouse_translate_sensitivity: Vec2::splat(0.1),
+            mouse_wheel_zoom_sensitivity: 0.001,
             smoothing_weight: 0.8,
             enabled: true,
         }
@@ -73,10 +78,12 @@ impl Default for OrbitCameraController {
 pub enum ControlEvent {
     Orbit(Vec2),
     TranslateTarget(Vec2),
+    Zoom(f32),
 }
 
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
+    mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
     mouse_buttons: Res<Input<MouseButton>>,
     keyboard: Res<Input<KeyCode>>,
@@ -92,6 +99,7 @@ pub fn default_input_map(
         enabled,
         mouse_rotate_sensitivity,
         mouse_translate_sensitivity,
+        mouse_wheel_zoom_sensitivity,
         ..
     } = *controller;
 
@@ -99,20 +107,26 @@ pub fn default_input_map(
         return;
     }
 
-    let mut mouse_delta = Vec2::ZERO;
+    let mut cursor_delta = Vec2::ZERO;
     for event in mouse_motion_events.iter() {
-        mouse_delta += event.delta;
+        cursor_delta += event.delta;
     }
 
     if mouse_buttons.pressed(MouseButton::Right) {
         if keyboard.pressed(KeyCode::LControl) {
-            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * mouse_delta));
+            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
         } else {
             events.send(ControlEvent::TranslateTarget(
-                mouse_translate_sensitivity * mouse_delta,
+                mouse_translate_sensitivity * cursor_delta,
             ));
         }
     }
+
+    let mut scalar = 1.0;
+    for event in mouse_wheel_reader.iter() {
+        scalar *= 1.0 + event.y * mouse_wheel_zoom_sensitivity;
+    }
+    events.send(ControlEvent::Zoom(scalar));
 }
 
 pub fn control_system(
@@ -129,6 +143,7 @@ pub fn control_system(
 
     if controller.enabled {
         let mut look_angles = LookAngles::from_vector(-transform.look_direction());
+        let mut radius_scalar = 1.0;
 
         for event in events.iter() {
             match event {
@@ -141,12 +156,16 @@ pub fn control_system(
                     let up_dir = scene_transform.rotation * Vec3::Y;
                     transform.target += delta.x * right_dir + delta.y * up_dir;
                 }
+                ControlEvent::Zoom(scalar) => {
+                    radius_scalar *= scalar;
+                }
             }
         }
 
         look_angles.assert_not_looking_up();
 
-        transform.offset_eye_in_direction(look_angles.unit_vector());
+        transform.eye =
+            transform.target + radius_scalar * transform.radius() * look_angles.unit_vector();
     } else {
         events.iter(); // Drop the events.
     }

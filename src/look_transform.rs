@@ -41,14 +41,6 @@ impl LookTransform {
     pub fn look_direction(&self) -> Vec3 {
         (self.target - self.eye).normalize()
     }
-
-    pub fn offset_eye_in_direction(&mut self, direction: Vec3) {
-        self.eye = self.target + self.radius() * direction;
-    }
-
-    pub fn offset_target_in_direction(&mut self, direction: Vec3) {
-        self.target = self.eye + self.radius() * direction;
-    }
 }
 
 fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
