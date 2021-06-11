@@ -50,7 +50,7 @@ impl FpsCameraBundle {
     }
 }
 
-/// A camera controlled with the mouse in the same way as Fps Engine's viewport controller.
+/// Your typical first-person camera controller.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct FpsCameraController {
     pub enabled: bool,
