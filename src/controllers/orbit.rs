@@ -56,8 +56,8 @@ impl OrbitCameraBundle {
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct OrbitCameraController {
-    pub mouse_rotate_sensitivity: f32,
-    pub mouse_translate_sensitivity: f32,
+    pub mouse_rotate_sensitivity: Vec2,
+    pub mouse_translate_sensitivity: Vec2,
     pub smoothing_weight: f32,
     pub enabled: bool,
 }
@@ -65,8 +65,8 @@ pub struct OrbitCameraController {
 impl Default for OrbitCameraController {
     fn default() -> Self {
         Self {
-            mouse_rotate_sensitivity: 0.002,
-            mouse_translate_sensitivity: 0.1,
+            mouse_rotate_sensitivity: Vec2::splat(0.002),
+            mouse_translate_sensitivity: Vec2::splat(0.1),
             smoothing_weight: 0.8,
             enabled: true,
         }

@@ -61,9 +61,9 @@ impl UnrealCameraBundle {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct UnrealCameraController {
     pub enabled: bool,
-    pub mouse_rotate_sensitivity: f32,
-    pub mouse_translate_sensitivity: f32,
-    pub trackpad_translate_sensitivity: f32,
+    pub mouse_rotate_sensitivity: Vec2,
+    pub mouse_translate_sensitivity: Vec2,
+    pub trackpad_translate_sensitivity: Vec2,
     pub smoothing_weight: f32,
 }
 
@@ -71,9 +71,9 @@ impl Default for UnrealCameraController {
     fn default() -> Self {
         Self {
             enabled: true,
-            mouse_rotate_sensitivity: 0.002,
-            mouse_translate_sensitivity: 0.1,
-            trackpad_translate_sensitivity: 0.1,
+            mouse_rotate_sensitivity: Vec2::splat(0.002),
+            mouse_translate_sensitivity: Vec2::splat(0.1),
+            trackpad_translate_sensitivity: Vec2::splat(0.1),
             smoothing_weight: 0.9,
         }
     }
@@ -125,8 +125,8 @@ pub fn default_input_map(
         }
         (true, false) => {
             events.send(ControlEvent::Locomotion(Vec2::new(
-                mouse_rotate_sensitivity * mouse_delta.x,
-                mouse_translate_sensitivity * mouse_delta.y,
+                mouse_rotate_sensitivity.x * mouse_delta.x,
+                mouse_translate_sensitivity.y * mouse_delta.y,
             )));
         }
         (false, true) => {
