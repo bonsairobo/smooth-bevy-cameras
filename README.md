@@ -2,6 +2,8 @@
 
 A collection of exponentially-smoothed camera controllers for the Bevy Engine.
 
+## Look Transform
+
 All controllers are based on a `LookTransform` component, which is just an `eye` point that looks at a `target` point. By
 modifying this component, the scene graph `Transform` will automatically be synchronized.
 
