@@ -1,8 +1,8 @@
 pub mod controllers;
 
-mod orbit_transform;
+mod look_transform;
 mod polar_direction;
 
 pub use controllers::*;
-pub use orbit_transform::*;
+pub use look_transform::*;
 pub use polar_direction::*;

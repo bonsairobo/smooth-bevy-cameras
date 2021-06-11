@@ -1,4 +1,4 @@
-use crate::{LookPolarity, OrbitTransform, OrbitTransformBundle, PolarDirection, Smoother};
+use crate::{LookTransform, LookTransformBundle, PolarDirection, Smoother};
 
 use bevy::{
     app::prelude::*,
@@ -24,7 +24,7 @@ impl Plugin for OrbitCameraPlugin {
 pub struct OrbitCameraBundle {
     controller: OrbitCameraController,
     #[bundle]
-    orbit_transform: OrbitTransformBundle,
+    look_transform: LookTransformBundle,
     #[bundle]
     perspective: PerspectiveCameraBundle,
 }
@@ -41,12 +41,8 @@ impl OrbitCameraBundle {
 
         Self {
             controller,
-            orbit_transform: OrbitTransformBundle {
-                transform: OrbitTransform {
-                    pivot: target,
-                    orbit: eye,
-                },
-                polarity: LookPolarity::OrbitLookAtPivot,
+            look_transform: LookTransformBundle {
+                transform: LookTransform { eye, target },
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -120,7 +116,7 @@ pub fn default_input_map(
 
 pub fn control_system(
     mut events: EventReader<ControlEvent>,
-    mut cameras: Query<(&OrbitCameraController, &mut OrbitTransform, &Transform)>,
+    mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform)>,
 ) {
     let (controller, mut transform, scene_transform) =
         if let Some((controller, transform, scene_transform)) = cameras.iter_mut().next() {
@@ -130,7 +126,7 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let mut polar_vector = PolarDirection::from_vector(transform.pivot_to_orbit_direction());
+        let mut polar_vector = PolarDirection::from_vector(-transform.look_direction());
 
         for event in events.iter() {
             match event {
@@ -142,12 +138,12 @@ pub fn control_system(
                 ControlEvent::Translate(delta) => {
                     let right_dir = scene_transform.rotation * -Vec3::X;
                     let up_dir = scene_transform.rotation * Vec3::Y;
-                    transform.pivot += delta.x * right_dir + delta.y * up_dir;
+                    transform.target += delta.x * right_dir + delta.y * up_dir;
                 }
             }
         }
 
-        transform.set_orbit_in_direction(polar_vector.unit_vector());
+        transform.offset_eye_in_direction(polar_vector.unit_vector());
     } else {
         events.iter(); // Drop the events.
     }

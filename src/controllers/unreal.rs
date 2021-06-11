@@ -1,4 +1,4 @@
-use crate::{LookPolarity, OrbitTransform, OrbitTransformBundle, PolarDirection, Smoother};
+use crate::{LookTransform, LookTransformBundle, PolarDirection, Smoother};
 
 use bevy::{
     app::prelude::*,
@@ -27,7 +27,7 @@ impl Plugin for UnrealCameraPlugin {
 pub struct UnrealCameraBundle {
     controller: UnrealCameraController,
     #[bundle]
-    orbit_transform: OrbitTransformBundle,
+    look_transform: LookTransformBundle,
     #[bundle]
     perspective: PerspectiveCameraBundle,
 }
@@ -44,12 +44,8 @@ impl UnrealCameraBundle {
 
         Self {
             controller,
-            orbit_transform: OrbitTransformBundle {
-                transform: OrbitTransform {
-                    pivot: eye,
-                    orbit: target,
-                },
-                polarity: LookPolarity::PivotLookAtOrbit,
+            look_transform: LookTransformBundle {
+                transform: LookTransform { eye, target },
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -148,7 +144,7 @@ pub fn default_input_map(
 
 pub fn control_system(
     mut events: EventReader<ControlEvent>,
-    mut cameras: Query<(&UnrealCameraController, &mut OrbitTransform)>,
+    mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
     let (controller, mut transform) =
         if let Some((controller, transform)) = cameras.iter_mut().next() {
@@ -158,7 +154,7 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let look_vector = transform.pivot_to_orbit_direction();
+        let look_vector = transform.look_direction();
         let mut polar_vector = PolarDirection::from_vector(look_vector);
         let forward_vector = Vec3::new(look_vector.x, 0.0, look_vector.z).normalize();
 
@@ -171,7 +167,7 @@ pub fn control_system(
                 ControlEvent::Locomotion(delta) => {
                     // Translates forward/backward and rotates about the Y axis.
                     polar_vector.add_yaw(-delta.x);
-                    transform.pivot -= delta.y * forward_vector;
+                    transform.eye -= delta.y * forward_vector;
                 }
                 ControlEvent::Rotate(delta) => {
                     // Rotates with pitch and yaw.
@@ -180,14 +176,14 @@ pub fn control_system(
                 }
                 ControlEvent::Translate(delta) => {
                     // Translates up/down (Y) and left/right (X).
-                    transform.pivot -= delta.x * rot_x + delta.y * rot_y;
+                    transform.eye -= delta.x * rot_x + delta.y * rot_y;
                 }
             }
         }
 
         polar_vector.assert_not_looking_up();
 
-        transform.set_orbit_in_direction(polar_vector.unit_vector());
+        transform.offset_target_in_direction(polar_vector.unit_vector());
     } else {
         events.iter(); // Drop the events.
     }
