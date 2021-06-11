@@ -1,7 +1,4 @@
-use crate::{
-    orbit_transform::{OrbitTransform, Smoother},
-    polar_direction::PolarDirection,
-};
+use crate::{LookPolarity, OrbitTransform, OrbitTransformBundle, PolarDirection, Smoother};
 
 use bevy::{
     app::prelude::*,
@@ -16,17 +13,29 @@ use bevy::{
 };
 use serde::{Deserialize, Serialize};
 
+pub struct UnrealCameraPlugin;
+
+impl Plugin for UnrealCameraPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_system(default_input_map.system())
+            .add_system(control_system.system())
+            .add_event::<ControlEvent>();
+    }
+}
+
 #[derive(Bundle)]
 pub struct UnrealCameraBundle {
     controller: UnrealCameraController,
+    #[bundle]
+    orbit_transform: OrbitTransformBundle,
     #[bundle]
     perspective: PerspectiveCameraBundle,
 }
 
 impl UnrealCameraBundle {
     pub fn new(
+        controller: UnrealCameraController,
         mut perspective: PerspectiveCameraBundle,
-        control_config: UnrealCameraControlConfig,
         eye: Vec3,
         target: Vec3,
     ) -> Self {
@@ -34,59 +43,39 @@ impl UnrealCameraBundle {
         perspective.transform = Transform::from_translation(eye).looking_at(target, Vec3::Y);
 
         Self {
+            controller,
+            orbit_transform: OrbitTransformBundle {
+                transform: OrbitTransform {
+                    pivot: eye,
+                    orbit: target,
+                },
+                polarity: LookPolarity::PivotLookAtOrbit,
+                smoother: Smoother::new(controller.smoothing_weight),
+            },
             perspective,
-            controller: UnrealCameraController::new(control_config, eye, target),
         }
     }
 }
 
+/// A camera controlled with the mouse in the same way as Unreal Engine's viewport controller.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct UnrealCameraControlConfig {
+pub struct UnrealCameraController {
+    pub enabled: bool,
     pub mouse_rotate_sensitivity: f32,
     pub mouse_translate_sensitivity: f32,
     pub trackpad_translate_sensitivity: f32,
     pub smoothing_weight: f32,
 }
 
-impl Default for UnrealCameraControlConfig {
+impl Default for UnrealCameraController {
     fn default() -> Self {
         Self {
+            enabled: true,
             mouse_rotate_sensitivity: 0.002,
             mouse_translate_sensitivity: 0.1,
             trackpad_translate_sensitivity: 0.1,
             smoothing_weight: 0.9,
         }
-    }
-}
-
-/// A camera controlled with the mouse in the same way as Unreal Engine's viewport controller.
-pub struct UnrealCameraController {
-    control_config: UnrealCameraControlConfig,
-    transform: OrbitTransform,
-    smoother: Smoother,
-    enabled: bool,
-}
-
-impl UnrealCameraController {
-    pub fn new(control_config: UnrealCameraControlConfig, pivot: Vec3, orbit: Vec3) -> Self {
-        Self {
-            control_config,
-            transform: OrbitTransform { pivot, orbit },
-            smoother: Default::default(),
-            enabled: true,
-        }
-    }
-
-    pub fn disable(&mut self) {
-        self.enabled = false;
-    }
-
-    pub fn enable(&mut self) {
-        self.enabled = true;
-    }
-
-    pub fn is_enabled(&self) -> bool {
-        self.enabled
     }
 }
 
@@ -103,18 +92,20 @@ pub fn default_input_map(
     mouse_buttons: Res<Input<MouseButton>>,
     controllers: Query<&UnrealCameraController>,
 ) {
-    let camera = if let Some(camera) = controllers.iter().next() {
-        camera
+    let controller = if let Some(controller) = controllers.iter().next() {
+        controller
     } else {
         return;
     };
     let UnrealCameraController {
-        control_config,
         enabled,
+        mouse_translate_sensitivity,
+        mouse_rotate_sensitivity,
+        trackpad_translate_sensitivity,
         ..
-    } = &*camera;
+    } = *controller;
 
-    if !*enabled {
+    if !enabled {
         return;
     }
 
@@ -129,19 +120,17 @@ pub fn default_input_map(
     ) {
         (true, true) => {
             events.send(ControlEvent::Translate(
-                control_config.mouse_translate_sensitivity * mouse_delta,
+                mouse_translate_sensitivity * mouse_delta,
             ));
         }
         (true, false) => {
             events.send(ControlEvent::Locomotion(Vec2::new(
-                control_config.mouse_rotate_sensitivity * mouse_delta.x,
-                control_config.mouse_translate_sensitivity * mouse_delta.y,
+                mouse_rotate_sensitivity * mouse_delta.x,
+                mouse_translate_sensitivity * mouse_delta.y,
             )));
         }
         (false, true) => {
-            events.send(ControlEvent::Rotate(
-                control_config.mouse_rotate_sensitivity * mouse_delta,
-            ));
+            events.send(ControlEvent::Rotate(mouse_rotate_sensitivity * mouse_delta));
         }
         _ => (),
     }
@@ -153,27 +142,22 @@ pub fn default_input_map(
         trackpad_delta.y += event.y;
     }
     events.send(ControlEvent::Translate(
-        control_config.trackpad_translate_sensitivity * trackpad_delta,
+        trackpad_translate_sensitivity * trackpad_delta,
     ));
 }
 
 pub fn control_system(
     mut events: EventReader<ControlEvent>,
-    mut cameras: Query<(&mut UnrealCameraController, &mut Transform)>,
+    mut cameras: Query<(&UnrealCameraController, &mut OrbitTransform)>,
 ) {
-    let (mut camera, mut scene_tfm) = if let Some((camera, tfm)) = cameras.iter_mut().next() {
-        (camera, tfm)
-    } else {
-        return;
-    };
-    let UnrealCameraController {
-        control_config,
-        transform,
-        smoother,
-        enabled,
-    } = &mut *camera;
+    let (controller, mut transform) =
+        if let Some((controller, transform)) = cameras.iter_mut().next() {
+            (controller, transform)
+        } else {
+            return;
+        };
 
-    if *enabled {
+    if controller.enabled {
         let look_vector = transform.pivot_to_orbit_direction();
         let mut polar_vector = PolarDirection::from_vector(look_vector);
         let forward_vector = Vec3::new(look_vector.x, 0.0, look_vector.z).normalize();
@@ -207,8 +191,4 @@ pub fn control_system(
     } else {
         events.iter(); // Drop the events.
     }
-
-    *scene_tfm = smoother
-        .smooth_transform(control_config.smoothing_weight, transform)
-        .pivot_look_at_orbit_transform();
 }
