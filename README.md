@@ -53,11 +53,14 @@ These plugins depend on the `LookTransformPlugin`:
   - WASD: Translate on the XZ plane
   - Shift/Space: Translate along the Y axis
   - Mouse: Rotate camera
+  - Run example : `cargo run --release --example simple_fps`
 - `OrbitCameraPlugin + OrbitCameraBundle`
   - CTRL + mouse drag: Rotate camera
   - Right mouse drag: Pan camera
   - Mouse wheel: Zoom
+  - Run example : `cargo run --release --example simple_orbit`
 - `UnrealCameraPlugin + UnrealCameraBundle`
   - Left mouse drag: Locomotion
   - Right mouse drag: Rotate camera
   - Left and Right mouse drag: Pan camera
+  - Run example : `cargo run --release --example simple_unreal`
