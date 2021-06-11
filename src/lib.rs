@@ -3,7 +3,7 @@ mod orbit_controller;
 mod orbit_transform;
 mod unreal_controller;
 
-pub use geometry::PolarVector;
+pub use geometry::PolarDirection;
 pub use orbit_controller::{OrbitCameraBundle, OrbitCameraControlConfig, OrbitCameraController};
 pub use orbit_transform::*;
 pub use unreal_controller::{

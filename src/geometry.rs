@@ -3,14 +3,15 @@ use bevy::math::prelude::*;
 
 const PI: f32 = std::f32::consts::PI;
 
+/// A (yaw, pitch) pair representing a direction.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct PolarVector {
+pub struct PolarDirection {
     // The fields are protected to keep them in an allowable range for the camera transform.
     yaw: f32,
     pitch: f32,
 }
 
-impl PolarVector {
+impl PolarDirection {
     pub fn from_vector(v: Vec3) -> Self {
         let mut p = Self::default();
         p.set_vector(v);

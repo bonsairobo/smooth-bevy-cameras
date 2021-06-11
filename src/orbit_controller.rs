@@ -1,5 +1,5 @@
 use crate::{
-    geometry::PolarVector,
+    geometry::PolarDirection,
     orbit_transform::{OrbitTransform, Smoother},
 };
 
@@ -126,7 +126,7 @@ pub fn control_system(
     } = &mut *camera;
 
     if *enabled {
-        let mut polar_vector = PolarVector::from_vector(transform.pivot_to_orbit_direction());
+        let mut polar_vector = PolarDirection::from_vector(transform.pivot_to_orbit_direction());
 
         for event in events.iter() {
             match event {

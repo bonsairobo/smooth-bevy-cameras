@@ -1,5 +1,5 @@
 use crate::{
-    geometry::PolarVector,
+    geometry::PolarDirection,
     orbit_transform::{OrbitTransform, Smoother},
 };
 
@@ -175,7 +175,7 @@ pub fn control_system(
 
     if *enabled {
         let look_vector = transform.pivot_to_orbit_direction();
-        let mut polar_vector = PolarVector::from_vector(look_vector);
+        let mut polar_vector = PolarDirection::from_vector(look_vector);
         let forward_vector = Vec3::new(look_vector.x, 0.0, look_vector.z).normalize();
 
         let yaw_rot = Quat::from_axis_angle(Vec3::Y, polar_vector.get_yaw());
