@@ -66,9 +66,8 @@ impl PolarDirection {
     }
 }
 
-/// Returns pitch and yaw angles that rotates z unit vector to v. The yaw is applied first to z
-/// about the y axis to get z'. Then the pitch is applied about some axis orthogonal to z' in the
-/// XZ plane to get v.
+/// Returns pitch and yaw angles that rotates z unit vector to v. The yaw is applied first to z about the y axis to get z'. Then
+/// the pitch is applied about some axis orthogonal to z' in the XZ plane to get v.
 pub fn yaw_and_pitch_from_vector(v: Vec3) -> (f32, f32) {
     debug_assert_ne!(v, Vec3::ZERO);
 

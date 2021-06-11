@@ -1,11 +1,11 @@
-mod geometry;
 mod orbit_controller;
 mod orbit_transform;
+mod polar_direction;
 mod unreal_controller;
 
-pub use geometry::PolarDirection;
 pub use orbit_controller::{OrbitCameraBundle, OrbitCameraControlConfig, OrbitCameraController};
 pub use orbit_transform::*;
+pub use polar_direction::PolarDirection;
 pub use unreal_controller::{
     UnrealCameraBundle, UnrealCameraControlConfig, UnrealCameraController,
 };

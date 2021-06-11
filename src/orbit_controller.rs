@@ -1,6 +1,6 @@
 use crate::{
-    geometry::PolarDirection,
     orbit_transform::{OrbitTransform, Smoother},
+    polar_direction::PolarDirection,
 };
 
 use bevy::{
