@@ -1,0 +1,14 @@
+[package]
+name = "smooth-bevy-cameras"
+version = "0.1.0"
+authors = ["Duncan <bonsairobo@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+approx = "0.4"
+serde = "1.0"
+
+[dependencies.bevy]
+version = "0.5"
+features = ["render"]
+default-features = false
