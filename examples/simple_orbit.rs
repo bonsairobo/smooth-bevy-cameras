@@ -43,10 +43,7 @@ fn setup(
 
     commands.spawn_bundle(OrbitCameraBundle::new(
         OrbitCameraController::default(),
-        PerspectiveCameraBundle {
-            transform: Transform::from_xyz(-2.0, 5.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..Default::default()
-        },
+        PerspectiveCameraBundle::default(),
         Vec3::new(-2.0, 5.0, 5.0),
         Vec3::new(0., 0., 0.),
     ));
