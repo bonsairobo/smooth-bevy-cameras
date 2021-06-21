@@ -66,9 +66,9 @@ pub struct OrbitCameraController {
 impl Default for OrbitCameraController {
     fn default() -> Self {
         Self {
-            mouse_rotate_sensitivity: Vec2::splat(0.002),
-            mouse_translate_sensitivity: Vec2::splat(0.1),
-            mouse_wheel_zoom_sensitivity: 0.001,
+            mouse_rotate_sensitivity: Vec2::splat(0.006),
+            mouse_translate_sensitivity: Vec2::splat(0.008),
+            mouse_wheel_zoom_sensitivity: 0.15,
             smoothing_weight: 0.8,
             enabled: true,
         }
