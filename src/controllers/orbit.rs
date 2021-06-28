@@ -124,7 +124,7 @@ pub fn default_input_map(
 
     let mut scalar = 1.0;
     for event in mouse_wheel_reader.iter() {
-        scalar *= 1.0 + event.y * mouse_wheel_zoom_sensitivity;
+        scalar *= 1.0 + -event.y * mouse_wheel_zoom_sensitivity;
     }
     events.send(ControlEvent::Zoom(scalar));
 }
