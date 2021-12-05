@@ -153,12 +153,12 @@ mod tests {
     #[test]
     fn test_yaw_and_pitch() {
         let (yaw, pitch) = yaw_and_pitch_from_vector(Vec3::new(0.5f32.sqrt(), 1.0, 0.5f32.sqrt()));
-        assert_relative_eq!(yaw, PI / 4.0);
+        assert_relative_eq!(yaw, PI / 4.0, epsilon = 1e-6f32);
         assert_relative_eq!(pitch, PI / 4.0);
 
         let (yaw, pitch) =
             yaw_and_pitch_from_vector(Vec3::new(-0.5f32.sqrt(), -1.0, 0.5f32.sqrt()));
-        assert_relative_eq!(yaw, -PI / 4.0);
+        assert_relative_eq!(yaw, -PI / 4.0, epsilon = 1e-6f32);
         assert_relative_eq!(pitch, -PI / 4.0);
     }
 }

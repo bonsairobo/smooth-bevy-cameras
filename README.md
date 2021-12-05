@@ -21,13 +21,13 @@ commands
         transform: LookTransform { eye, target },
         smoother: Smoother::new(0.9), // Value between 0.0 and 1.0, higher is smoother.
     })
-    .insert(PerspectiveCameraBundle::default())
+    .insert_bundle(PerspectiveCameraBundle::default())
 
 ...
 
 fn move_camera_system(mut cameras: Query<&mut LookTransform>) {
     // Later, another system will update the `Transform` and apply smoothing automatically.
-    for c in cameras.iter_mut() { c.target += Vec3::new(1.0, 1.0, 1.0); }
+    for mut c in cameras.iter_mut() { c.target += Vec3::new(1.0, 1.0, 1.0); }
 }
 ```
 

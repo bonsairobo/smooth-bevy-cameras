@@ -94,7 +94,7 @@ fn look_transform_system(
         let effective_look_transform = if let Some(mut smoother) = smoother {
             smoother.smooth_transform(look_transform)
         } else {
-            look_transform.clone()
+            *look_transform
         };
         *scene_transform = effective_look_transform.into();
     }
