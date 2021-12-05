@@ -13,13 +13,27 @@ use bevy::{
 };
 use serde::{Deserialize, Serialize};
 
-pub struct OrbitCameraPlugin;
+#[derive(Default)]
+pub struct OrbitCameraPlugin {
+    pub override_input_system: bool,
+}
+
+impl OrbitCameraPlugin {
+    pub fn new(override_input_system: bool) -> Self {
+        Self {
+            override_input_system,
+        }
+    }
+}
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system(default_input_map.system())
+        let app = app
             .add_system(control_system.system())
             .add_event::<ControlEvent>();
+        if !self.override_input_system {
+            app.add_system(default_input_map.system());
+        }
     }
 }
 

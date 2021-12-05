@@ -9,7 +9,7 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(LookTransformPlugin)
-        .add_plugin(UnrealCameraPlugin)
+        .add_plugin(UnrealCameraPlugin::default())
         .add_startup_system(setup.system())
         .run();
 }
