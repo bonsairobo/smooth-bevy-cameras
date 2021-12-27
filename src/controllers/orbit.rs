@@ -141,7 +141,7 @@ pub fn default_input_map(
 
     let mut scalar = 1.0;
     for event in mouse_wheel_reader.iter() {
-        // scale the event magnitude per pixel or per line, assuming 50 pixels per line
+        // scale the event magnitude per pixel or per line
         let scroll_amount = match event.unit {
             MouseScrollUnit::Line => event.y,
             MouseScrollUnit::Pixel => event.y / pixels_per_line,
