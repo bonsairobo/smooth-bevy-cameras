@@ -4,7 +4,7 @@ use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
     input::{
-        mouse::{MouseMotion, MouseWheel},
+        mouse::{MouseMotion, MouseScrollUnit, MouseWheel},
         prelude::*,
     },
     math::prelude::*,
@@ -74,6 +74,7 @@ pub struct OrbitCameraController {
     pub mouse_rotate_sensitivity: Vec2,
     pub mouse_translate_sensitivity: Vec2,
     pub mouse_wheel_zoom_sensitivity: f32,
+    pub pixels_per_line: f32,
     pub smoothing_weight: f32,
 }
 
@@ -85,6 +86,7 @@ impl Default for OrbitCameraController {
             mouse_wheel_zoom_sensitivity: 0.15,
             smoothing_weight: 0.8,
             enabled: true,
+            pixels_per_line: 53.0,
         }
     }
 }
@@ -114,6 +116,7 @@ pub fn default_input_map(
         mouse_rotate_sensitivity,
         mouse_translate_sensitivity,
         mouse_wheel_zoom_sensitivity,
+        pixels_per_line,
         ..
     } = *controller;
 
@@ -138,7 +141,12 @@ pub fn default_input_map(
 
     let mut scalar = 1.0;
     for event in mouse_wheel_reader.iter() {
-        scalar *= 1.0 + -event.y * mouse_wheel_zoom_sensitivity;
+        // scale the event magnitude per pixel or per line, assuming 50 pixels per line
+        let scroll_amount = match event.unit {
+            MouseScrollUnit::Line => event.y,
+            MouseScrollUnit::Pixel => event.y / pixels_per_line,
+        };
+        scalar *= 1.0 - scroll_amount * mouse_wheel_zoom_sensitivity;
     }
     events.send(ControlEvent::Zoom(scalar));
 }
