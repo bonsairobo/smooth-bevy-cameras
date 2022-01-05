@@ -38,8 +38,8 @@ impl LookTransform {
         (self.target - self.eye).length()
     }
 
-    pub fn look_direction(&self) -> Vec3 {
-        (self.target - self.eye).normalize()
+    pub fn look_direction(&self) -> Option<Vec3> {
+        (self.target - self.eye).try_normalize()
     }
 }
 

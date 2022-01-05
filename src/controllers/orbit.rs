@@ -164,7 +164,7 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let mut look_angles = LookAngles::from_vector(-transform.look_direction());
+        let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
         let mut radius_scalar = 1.0;
 
         for event in events.iter() {
@@ -186,8 +186,10 @@ pub fn control_system(
 
         look_angles.assert_not_looking_up();
 
-        transform.eye =
-            transform.target + radius_scalar * transform.radius() * look_angles.unit_vector();
+        let new_radius = (radius_scalar * transform.radius())
+            .min(1000000.0)
+            .max(0.001);
+        transform.eye = transform.target + new_radius * look_angles.unit_vector();
     } else {
         events.iter(); // Drop the events.
     }

@@ -172,7 +172,7 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let look_vector = transform.look_direction();
+        let look_vector = transform.look_direction().unwrap();
         let mut look_angles = LookAngles::from_vector(look_vector);
         let forward_vector = Vec3::new(look_vector.x, 0.0, look_vector.z).normalize();
 

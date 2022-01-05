@@ -151,7 +151,7 @@ pub fn control_system(
         };
 
     if controller.enabled {
-        let look_vector = transform.look_direction();
+        let look_vector = transform.look_direction().unwrap();
         let mut look_angles = LookAngles::from_vector(look_vector);
 
         let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
