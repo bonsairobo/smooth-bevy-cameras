@@ -24,7 +24,7 @@ impl FpsCameraPlugin {
 }
 
 impl Plugin for FpsCameraPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         let app = app
             .add_system(control_system.system())
             .add_event::<ControlEvent>();
@@ -65,7 +65,7 @@ impl FpsCameraBundle {
 }
 
 /// Your typical first-person camera controller.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Component, Copy, Debug, Deserialize, Serialize)]
 pub struct FpsCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,
