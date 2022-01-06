@@ -1,5 +1,8 @@
 # smooth-bevy-cameras
 
+[![crates.io](https://img.shields.io/crates/v/smooth_bevy_cameras)](https://crates.io/crates/smooth_bevy_cameras)
+[![docs.rs](https://docs.rs/smooth_bevy_cameras/badge.svg)](https://docs.rs/smooth_bevy_cameras)
+
 A collection of exponentially-smoothed camera controllers for the Bevy Engine.
 
 ## Look Transform
@@ -80,3 +83,5 @@ These plugins depend on the `LookTransformPlugin`:
   - Left mouse drag: Locomotion
   - Right mouse drag: Rotate camera
   - Left and Right mouse drag: Pan camera
+
+License: MIT
