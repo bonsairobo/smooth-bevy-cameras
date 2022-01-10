@@ -29,10 +29,10 @@ impl OrbitCameraPlugin {
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
-            .add_system(control_system.system())
+            .add_system(control_system)
             .add_event::<ControlEvent>();
         if !self.override_input_system {
-            app.add_system(default_input_map.system());
+            app.add_system(default_input_map);
         }
     }
 }
