@@ -1,5 +1,5 @@
 //! [![crates.io](https://img.shields.io/crates/v/smooth_bevy_cameras)](https://crates.io/crates/smooth_bevy_cameras)
-//! [![docs.rs](https://docs.rs/smooth_bevy_cameras/badge.svg)](https://docs.rs/smooth_bevy_cameras)
+//! [![docs.rs](https://docs.rs/smooth-bevy-cameras/badge.svg)](https://docs.rs/smooth-bevy-cameras)
 //!
 //! A collection of exponentially-smoothed camera controllers for the Bevy Engine.
 //!
