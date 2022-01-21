@@ -15,7 +15,7 @@ serde = "1.0"
 [dependencies.bevy]
 # version = "0.6"
 git = "https://github.com/bevyengine/bevy"
-rev = "fc0f15f1"
+rev = "f3de12bc"
 # branch = "main"
 features = ["render"]
 default-features = false
@@ -23,7 +23,7 @@ default-features = false
 [dev-dependencies.bevy]
 # version = "0.6"
 git = "https://github.com/bevyengine/bevy"
-rev = "fc0f15f1"
+rev = "f3de12bc"
 # branch = "main"
 features = ["bevy_winit", "bevy_gltf"]
 default-features = false
@@ -31,7 +31,7 @@ default-features = false
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]
 # version = "0.6"
 git = "https://github.com/bevyengine/bevy"
-rev = "fc0f15f1"
+rev = "f3de12bc"
 # branch = "main"
 features = ["x11", "wayland"]
 default-features = false
