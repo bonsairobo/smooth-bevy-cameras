@@ -16,7 +16,7 @@
 //! use smooth_bevy_cameras::{LookTransform, LookTransformBundle, LookTransformPlugin, Smoother};
 //!
 //! fn main() {
-//!     App::build()
+//!     App::new()
 //!         .add_plugins(DefaultPlugins)
 //!         // Enables the system that synchronizes your `Transform`s and `LookTransform`s.
 //!         .add_plugin(LookTransformPlugin)
@@ -56,10 +56,13 @@
 //! };
 //!
 //! fn look_angles(mut transform: LookTransform, delta: Vec2) {
-//!     let mut angles = LookAngles::from_vector(transform.look_direction());
+//!     let mut angles = LookAngles::from_vector(transform.look_direction().unwrap());
 //!     angles.add_pitch(delta.y);
 //!     angles.add_yaw(delta.x);
-//!     transform.target = transform.target + 1.0 * transform.radius() * angles.unit_vector();
+//!     // Third-person.
+//!     transform.eye = transform.target + 1.0 * transform.radius() * angles.unit_vector();
+//!     // First-person.
+//!     // transform.target = transform.eye + 1.0 * transform.radius() * angles.unit_vector();
 //! }
 //! ```
 //!
