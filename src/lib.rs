@@ -72,18 +72,24 @@
 //!
 //! These plugins depend on the `LookTransformPlugin`:
 //!
-//! - `FpsCameraPlugin + FpsCameraBundle`
+//! - `FpsCameraPlugin` + `FpsCameraBundle`
 //!   - WASD: Translate on the XZ plane
 //!   - Shift/Space: Translate along the Y axis
 //!   - Mouse: Rotate camera
-//! - `OrbitCameraPlugin + OrbitCameraBundle`
+//! - `OrbitCameraPlugin` + `OrbitCameraBundle`
 //!   - CTRL + mouse drag: Rotate camera
 //!   - Right mouse drag: Pan camera
 //!   - Mouse wheel: Zoom
-//! - `UnrealCameraPlugin + UnrealCameraBundle`
+//! - `UnrealCameraPlugin` + `UnrealCameraBundle`
+//!   Best use: hold Right mouse button to orbit the view while using WASD to navigate in the scene,
+//!   using scroll wheel to accelerate/decelerate.
 //!   - Left mouse drag: Locomotion
 //!   - Right mouse drag: Rotate camera
-//!   - Left and Right mouse drag: Pan camera
+//!   - Left and Right or Middle mouse drag: Pan camera
+//!   - While holding any mouse button, use A/D for panning left/right, Q/E for panning up/down
+//!   - While holding any mouse button, use W/S for locomotion forward/backward
+//!   - While holding any mouse button, use scroll wheel to increase/decrease locomotion and panning speeds
+//!   - While holding no mouse button, use scroll wheel for locomotion forward/backward
 
 pub mod controllers;
 
