@@ -25,13 +25,12 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
-    pub up: Vec3,
     pub(crate) enabled: bool,
 }
 
 impl From<LookTransform> for Transform {
     fn from(t: LookTransform) -> Self {
-        eye_look_at_target_transform(t.eye, t.target, t.up)
+        eye_look_at_target_transform(t.eye, t.target)
     }
 }
 
@@ -40,7 +39,6 @@ impl LookTransform {
         Self {
             eye,
             target,
-            up: Vec3::Y,
             enabled: true,
         }
     }
@@ -54,12 +52,12 @@ impl LookTransform {
     }
 }
 
-fn eye_look_at_target_transform(eye: Vec3, target: Vec3, up: Vec3) -> Transform {
+fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
     // If eye and target are very close, we avoid imprecision issues by keeping the look vector a unit vector.
     let look_vector = (target - eye).normalize();
     let look_at = eye + look_vector;
 
-    Transform::from_translation(eye).looking_at(look_at, up)
+    Transform::from_translation(eye).looking_at(look_at, Vec3::Y)
 }
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
