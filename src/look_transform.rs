@@ -25,15 +25,26 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
+    pub up: Vec3,
+    pub(crate) enabled: bool,
 }
 
 impl From<LookTransform> for Transform {
     fn from(t: LookTransform) -> Self {
-        eye_look_at_target_transform(t.eye, t.target)
+        eye_look_at_target_transform(t.eye, t.target, t.up)
     }
 }
 
 impl LookTransform {
+    pub fn new(eye: Vec3, target: Vec3) -> Self {
+        Self {
+            eye,
+            target,
+            up: Vec3::Y,
+            enabled: true,
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         (self.target - self.eye).length()
     }
@@ -43,12 +54,12 @@ impl LookTransform {
     }
 }
 
-fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
+fn eye_look_at_target_transform(eye: Vec3, target: Vec3, up: Vec3) -> Transform {
     // If eye and target are very close, we avoid imprecision issues by keeping the look vector a unit vector.
     let look_vector = (target - eye).normalize();
     let look_at = eye + look_vector;
 
-    Transform::from_translation(eye).looking_at(look_at, Vec3::Y)
+    Transform::from_translation(eye).looking_at(look_at, up)
 }
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
@@ -75,11 +86,19 @@ impl Smoother {
         debug_assert!(self.lag_weight < 1.0);
 
         let old_lerp_tfm = self.lerp_tfm.unwrap_or_else(|| *new_tfm);
+        let lerp_tfm = if new_tfm.enabled && old_lerp_tfm.enabled {
+            let lead_weight = 1.0 - self.lag_weight;
 
-        let lead_weight = 1.0 - self.lag_weight;
-        let lerp_tfm = LookTransform {
-            eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
-            target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
+            LookTransform {
+                eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
+                target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
+                ..*new_tfm
+            }
+        } else {
+            // Don't apply any interpolation if we were disabled now or past frame.
+            // This is to allow external systems to disable, modify the position of the camera
+            // manually then re-enable it without animating this transition.
+            *new_tfm
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -97,6 +116,9 @@ fn look_transform_system(
         } else {
             *look_transform
         };
-        *scene_transform = effective_look_transform.into();
+
+        if look_transform.enabled {
+            *scene_transform = effective_look_transform.into();
+        }
     }
 }

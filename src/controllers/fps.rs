@@ -25,7 +25,11 @@ impl FpsCameraPlugin {
 
 impl Plugin for FpsCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app.add_system(control_system).add_event::<ControlEvent>();
+        let app = app
+            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
+            .add_system(control_system)
+            .add_event::<ControlEvent>();
+
         if !self.override_input_system {
             app.add_system(default_input_map);
         }
@@ -54,7 +58,7 @@ impl FpsCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target },
+                transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -85,6 +89,17 @@ impl Default for FpsCameraController {
 pub enum ControlEvent {
     Rotate(Vec2),
     TranslateEye(Vec3),
+}
+
+fn on_controller_enabled_changed(
+    mut look_transforms: Query<
+        (&mut LookTransform, &FpsCameraController),
+        Changed<FpsCameraController>,
+    >,
+) {
+    for (mut look_tfm, controller) in look_transforms.iter_mut() {
+        look_tfm.enabled = controller.enabled;
+    }
 }
 
 pub fn default_input_map(
