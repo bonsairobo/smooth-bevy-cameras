@@ -114,16 +114,7 @@ pub enum ControlEvent {
     TranslateEye(Vec2),
 }
 
-fn on_controller_enabled_changed(
-    mut look_transforms: Query<
-        (&mut LookTransform, &UnrealCameraController),
-        Changed<UnrealCameraController>,
-    >,
-) {
-    for (mut look_tfm, controller) in look_transforms.iter_mut() {
-        look_tfm.enabled = controller.enabled;
-    }
-}
+define_on_controller_enabled_changed!(UnrealCameraController);
 
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
