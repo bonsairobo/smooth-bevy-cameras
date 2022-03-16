@@ -28,9 +28,11 @@ impl UnrealCameraPlugin {
 
 impl Plugin for UnrealCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app.add_system(apply_inputs).add_event::<ControlEvent>();
+        let app = app
+            .add_system(control_system)
+            .add_event::<ControlEvent>();
         if !self.override_input_system {
-            app.add_system(process_inputs);
+            app.add_system(default_input_map);
         }
     }
 }
@@ -105,13 +107,13 @@ impl Default for UnrealCameraController {
     }
 }
 
-enum ControlEvent {
+pub enum ControlEvent {
     Locomotion(Vec2),
     Rotate(Vec2),
     TranslateEye(Vec2),
 }
 
-fn process_inputs(
+pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
@@ -232,7 +234,7 @@ fn process_inputs(
     }
 }
 
-fn apply_inputs(
+pub fn control_system(
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
