@@ -120,13 +120,14 @@ fn process_inputs(
     mut controllers: Query<&mut UnrealCameraController>,
 ) {
     // Can only control one camera at a time.
-    let mut controller = if let Some(controller) = controllers.iter_mut().next() {
+    let mut controller = if let Some(controller) = controllers.iter_mut().find(|c| {
+        c.enabled
+    }) {
         controller
     } else {
         return;
     };
     let UnrealCameraController {
-        enabled,
         rotate_sensitivity: mouse_rotate_sensitivity,
         mouse_translate_sensitivity,
         wheel_translate_sensitivity,
@@ -134,10 +135,6 @@ fn process_inputs(
         keyboard_mvmt_wheel_sensitivity,
         ..
     } = *controller;
-
-    if !enabled {
-        return;
-    }
 
     let left_pressed = mouse_buttons.pressed(MouseButton::Left);
     let right_pressed = mouse_buttons.pressed(MouseButton::Right);
@@ -237,14 +234,15 @@ fn apply_inputs(
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
     // Can only control one camera at a time.
-    let (controller, mut transform) =
-        if let Some((controller, transform)) = cameras.iter_mut().next() {
-            (controller, transform)
+    let mut transform =
+        if let Some((_, transform)) = cameras.iter_mut().find(|c| {
+            c.0.enabled
+        }) {
+            transform
         } else {
             return;
         };
 
-    if controller.enabled {
         let look_vector;
         match transform.look_direction() {
             Some(safe_look_vector) => look_vector = safe_look_vector,
@@ -277,7 +275,4 @@ fn apply_inputs(
         look_angles.assert_not_looking_up();
 
         transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
-    } else {
-        events.iter(); // Drop the events.
-    }
 }
