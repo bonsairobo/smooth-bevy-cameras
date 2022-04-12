@@ -57,7 +57,7 @@ impl UnrealCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target },
+                transform: LookTransform { eye, target, scale: 1.0 },
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,

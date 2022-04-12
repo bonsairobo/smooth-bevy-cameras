@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
-    LookTransformPlugin,
+    LookTransformPlugin, LookTransform, LookTransformBundle, Smoother,
 };
 
 fn main() {
@@ -41,10 +41,13 @@ fn setup(
         ..Default::default()
     });
 
-    commands.spawn_bundle(OrbitCameraBundle::with_perspective(
+    let mut orth = OrthographicCameraBundle::new_3d();
+    orth.orthographic_projection.scale = 5.0;
+    commands.spawn_bundle(OrbitCameraBundle::with_orthographic(
         OrbitCameraController::default(),
-        PerspectiveCameraBundle::default(),
+        orth,
         Vec3::new(-2.0, 5.0, 5.0),
         Vec3::new(0., 0., 0.),
     ));
 }
+

@@ -2,7 +2,7 @@ use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
     math::prelude::*,
-    transform::components::Transform,
+    transform::components::Transform, prelude::OrthographicProjection,
 };
 
 pub struct LookTransformPlugin;
@@ -25,6 +25,7 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
+    pub scale: f32,
 }
 
 impl From<LookTransform> for Transform {
@@ -80,6 +81,7 @@ impl Smoother {
         let lerp_tfm = LookTransform {
             eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
             target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
+            scale: old_lerp_tfm.scale * self.lag_weight + new_tfm.scale * lead_weight,
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -89,14 +91,17 @@ impl Smoother {
 }
 
 fn look_transform_system(
-    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
+    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut OrthographicProjection>, Option<&mut Smoother>)>,
 ) {
-    for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
+    for (look_transform, mut scene_transform, orth, smoother) in cameras.iter_mut() {
         let effective_look_transform = if let Some(mut smoother) = smoother {
             smoother.smooth_transform(look_transform)
         } else {
             *look_transform
         };
+        if let Some(mut projection) = orth {
+            projection.scale = effective_look_transform.scale;
+        }
         *scene_transform = effective_look_transform.into();
     }
 }
