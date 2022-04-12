@@ -96,21 +96,18 @@ pub fn default_input_map(
     controllers: Query<&FpsCameraController>,
 ) {
     // Can only control one camera at a time.
-    let controller = if let Some(controller) = controllers.iter().next() {
+    let controller = if let Some(controller) = controllers.iter().find(|c| {
+        c.enabled
+    }) {
         controller
     } else {
         return;
     };
     let FpsCameraController {
-        enabled,
         translate_sensitivity,
         mouse_rotate_sensitivity,
         ..
     } = *controller;
-
-    if !enabled {
-        return;
-    }
 
     let mut cursor_delta = Vec2::ZERO;
     for event in mouse_motion_events.iter() {
@@ -143,14 +140,15 @@ pub fn control_system(
     mut cameras: Query<(&FpsCameraController, &mut LookTransform)>,
 ) {
     // Can only control one camera at a time.
-    let (controller, mut transform) =
-        if let Some((controller, transform)) = cameras.iter_mut().next() {
-            (controller, transform)
+    let mut transform =
+        if let Some((_, transform)) = cameras.iter_mut().find(|c| {
+            c.0.enabled
+        }) {
+            transform
         } else {
             return;
         };
 
-    if controller.enabled {
         let look_vector = transform.look_direction().unwrap();
         let mut look_angles = LookAngles::from_vector(look_vector);
 
@@ -176,7 +174,4 @@ pub fn control_system(
         look_angles.assert_not_looking_up();
 
         transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
-    } else {
-        events.iter(); // Drop the events.
-    }
 }

@@ -106,23 +106,20 @@ pub fn default_input_map(
     controllers: Query<&OrbitCameraController>,
 ) {
     // Can only control one camera at a time.
-    let controller = if let Some(controller) = controllers.iter().next() {
+    let controller = if let Some(controller) = controllers.iter().find(|c| {
+        c.enabled
+    }) {
         controller
     } else {
         return;
     };
     let OrbitCameraController {
-        enabled,
         mouse_rotate_sensitivity,
         mouse_translate_sensitivity,
         mouse_wheel_zoom_sensitivity,
         pixels_per_line,
         ..
     } = *controller;
-
-    if !enabled {
-        return;
-    }
 
     let mut cursor_delta = Vec2::ZERO;
     for event in mouse_motion_events.iter() {
@@ -156,14 +153,15 @@ pub fn control_system(
     mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform)>,
 ) {
     // Can only control one camera at a time.
-    let (controller, mut transform, scene_transform) =
-        if let Some((controller, transform, scene_transform)) = cameras.iter_mut().next() {
-            (controller, transform, scene_transform)
+    let (mut transform, scene_transform) =
+        if let Some((_, transform, scene_transform)) = cameras.iter_mut().find(|c| {
+            c.0.enabled
+        }) {
+            (transform, scene_transform)
         } else {
             return;
         };
 
-    if controller.enabled {
         let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
         let mut radius_scalar = 1.0;
 
@@ -190,7 +188,4 @@ pub fn control_system(
             .min(1000000.0)
             .max(0.001);
         transform.eye = transform.target + new_radius * look_angles.unit_vector();
-    } else {
-        events.iter(); // Drop the events.
-    }
 }
