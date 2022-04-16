@@ -8,7 +8,7 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
-    render::prelude::*,
+    render::{camera::Camera3d, prelude::*},
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -28,9 +28,7 @@ impl OrbitCameraPlugin {
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app
-            .add_system(control_system)
-            .add_event::<ControlEvent>();
+        let app = app.add_system(control_system).add_event::<ControlEvent>();
         if !self.override_input_system {
             app.add_system(default_input_map);
         }
@@ -43,13 +41,13 @@ pub struct OrbitCameraBundle {
     #[bundle]
     look_transform: LookTransformBundle,
     #[bundle]
-    perspective: PerspectiveCameraBundle,
+    perspective: PerspectiveCameraBundle<Camera3d>,
 }
 
 impl OrbitCameraBundle {
     pub fn new(
         controller: OrbitCameraController,
-        mut perspective: PerspectiveCameraBundle,
+        mut perspective: PerspectiveCameraBundle<Camera3d>,
         eye: Vec3,
         target: Vec3,
     ) -> Self {

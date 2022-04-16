@@ -13,25 +13,25 @@ approx = "0.4"
 serde = "1.0"
 
 [dependencies.bevy]
-# version = "0.6.1"
-git = "https://github.com/bevyengine/bevy"
-rev = "b6a647cc"
+version = "0.7"
+# git = "https://github.com/bevyengine/bevy"
+# rev = "f3de12bc"
 # branch = "main"
 features = ["render"]
 default-features = false
 
 [dev-dependencies.bevy]
-# version = "0.6.1"
-git = "https://github.com/bevyengine/bevy"
-rev = "b6a647cc"
+version = "0.7"
+# git = "https://github.com/bevyengine/bevy"
+# rev = "f3de12bc"
 # branch = "main"
 features = ["bevy_winit", "bevy_gltf"]
 default-features = false
 
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]
-# version = "0.6.1"
-git = "https://github.com/bevyengine/bevy"
-rev = "b6a647cc"
+version = "0.7"
+# git = "https://github.com/bevyengine/bevy"
+# rev = "f3de12bc"
 # branch = "main"
 features = ["x11", "wayland"]
 default-features = false
