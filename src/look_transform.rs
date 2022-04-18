@@ -25,7 +25,6 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
-    pub(crate) enabled: bool,
 }
 
 impl From<LookTransform> for Transform {
@@ -36,11 +35,7 @@ impl From<LookTransform> for Transform {
 
 impl LookTransform {
     pub fn new(eye: Vec3, target: Vec3) -> Self {
-        Self {
-            eye,
-            target,
-            enabled: true,
-        }
+        Self { eye, target }
     }
 
     pub fn radius(&self) -> f32 {
@@ -65,6 +60,7 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
+    enabled: bool,
 }
 
 impl Smoother {
@@ -72,6 +68,16 @@ impl Smoother {
         Self {
             lag_weight,
             lerp_tfm: None,
+            enabled: true,
+        }
+    }
+
+    pub(crate) fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+        if self.enabled {
+            // To prevent camera jumping from last lerp before disabling to the current position,
+            // reset smoother state
+            self.lerp_tfm = None;
         }
     }
 
@@ -83,20 +89,12 @@ impl Smoother {
         debug_assert!(0.0 <= self.lag_weight);
         debug_assert!(self.lag_weight < 1.0);
 
-        let old_lerp_tfm = self.lerp_tfm.unwrap_or_else(|| *new_tfm);
-        let lerp_tfm = if new_tfm.enabled && old_lerp_tfm.enabled {
-            let lead_weight = 1.0 - self.lag_weight;
+        let old_lerp_tfm = self.lerp_tfm.unwrap_or(*new_tfm);
 
-            LookTransform {
-                eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
-                target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
-                ..*new_tfm
-            }
-        } else {
-            // Don't apply any interpolation if we were disabled now or past frame.
-            // This is to allow external systems to disable, modify the position of the camera
-            // manually then re-enable it without animating this transition.
-            *new_tfm
+        let lead_weight = 1.0 - self.lag_weight;
+        let lerp_tfm = LookTransform {
+            eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
+            target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -109,14 +107,11 @@ fn look_transform_system(
     mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
 ) {
     for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
-        let effective_look_transform = if let Some(mut smoother) = smoother {
-            smoother.smooth_transform(look_transform)
-        } else {
-            *look_transform
+        match smoother {
+            Some(mut s) if s.enabled => {
+                *scene_transform = s.smooth_transform(look_transform).into()
+            }
+            _ => (),
         };
-
-        if look_transform.enabled {
-            *scene_transform = effective_look_transform.into();
-        }
     }
 }
