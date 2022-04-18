@@ -183,6 +183,7 @@ pub fn control_system(
 
         let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
         let mut radius_scalar = 1.0;
+        let is_orthographic = orth.is_some();
 
         for event in events.iter() {
             match event {
@@ -193,7 +194,12 @@ pub fn control_system(
                 ControlEvent::TranslateTarget(delta) => {
                     let right_dir = scene_transform.rotation * -Vec3::X;
                     let up_dir = scene_transform.rotation * Vec3::Y;
-                    transform.target += delta.x * right_dir + delta.y * up_dir;
+                    let mut translation = delta.x * right_dir + delta.y * up_dir;
+                    if is_orthographic {
+                        let scale = transform.scale * 0.5;
+                        translation = translation * scale;
+                    }
+                    transform.target += translation;
                 }
                 ControlEvent::Zoom(scalar) => {
                     radius_scalar *= scalar;
@@ -203,18 +209,14 @@ pub fn control_system(
 
         look_angles.assert_not_looking_up();
 
-        match orth {
-            Some(_) => {
-                // orthographic camera
-                transform.scale = transform.scale * radius_scalar;
-                transform.eye = transform.target + transform.radius() * look_angles.unit_vector();
-            },
-            _ => {
-                // perspective camera
-                let new_radius = (radius_scalar * transform.radius())
-                    .min(1000000.0)
-                    .max(0.001);
-                transform.eye = transform.target + new_radius * look_angles.unit_vector();
-            }
-        };
+        if is_orthographic {
+            transform.scale = transform.scale * radius_scalar;
+            transform.eye = transform.target + transform.radius() * look_angles.unit_vector();
+        } else {
+            // perspective camera
+            let new_radius = (radius_scalar * transform.radius())
+                .min(1000000.0)
+                .max(0.001);
+            transform.eye = transform.target + new_radius * look_angles.unit_vector();
+        }
 }
