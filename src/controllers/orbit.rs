@@ -41,10 +41,10 @@ pub struct OrbitCameraBundle<T: Bundle> {
     #[bundle]
     look_transform: LookTransformBundle,
     #[bundle]
-    perspective: PerspectiveCameraBundle<Camera3d>,
+    camera_bundle: T,
 }
 
-impl OrbitCameraBundle<PerspectiveCameraBundle> {
+impl OrbitCameraBundle<PerspectiveCameraBundle<Camera3d>> {
     pub fn with_perspective(
         controller: OrbitCameraController,
         mut perspective: PerspectiveCameraBundle<Camera3d>,
@@ -65,10 +65,10 @@ impl OrbitCameraBundle<PerspectiveCameraBundle> {
     }
 }
 
-impl OrbitCameraBundle<OrthographicCameraBundle> {
+impl OrbitCameraBundle<OrthographicCameraBundle<Camera3d>> {
     pub fn with_orthographic(
         controller: OrbitCameraController,
-        mut orthographic: OrthographicCameraBundle,
+        mut orthographic: OrthographicCameraBundle<Camera3d>,
         eye: Vec3,
         target: Vec3,
     ) -> Self {
