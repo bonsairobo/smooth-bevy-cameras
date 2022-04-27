@@ -28,7 +28,11 @@ impl OrbitCameraPlugin {
 
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app.add_system(control_system).add_event::<ControlEvent>();
+        let app = app
+            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
+            .add_system(control_system)
+            .add_event::<ControlEvent>();
+
         if !self.override_input_system {
             app.add_system(default_input_map);
         }
@@ -57,7 +61,7 @@ impl OrbitCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target },
+                transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -94,6 +98,8 @@ pub enum ControlEvent {
     TranslateTarget(Vec2),
     Zoom(f32),
 }
+
+define_on_controller_enabled_changed!(OrbitCameraController);
 
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
