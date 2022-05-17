@@ -77,7 +77,7 @@ impl Smoother {
         if self.enabled {
             // To prevent camera jumping from last lerp before disabling to the current position,
             // reset smoother state
-            self.lerp_tfm = None;
+            self.reset();
         }
     }
 
@@ -102,8 +102,8 @@ impl Smoother {
         lerp_tfm
     }
 
-    pub fn reset(&mut self, transform: &LookTransform) {
-        self.lerp_tfm = Some(transfrom.clone());
+    pub fn reset(&mut self) {
+        self.lerp_tfm = None;
     }
 }
 
