@@ -2,6 +2,7 @@ use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
     math::prelude::*,
+    prelude::OrthographicProjection,
     transform::components::Transform,
 };
 
@@ -25,6 +26,7 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
+    pub scale: f32,
 }
 
 impl From<LookTransform> for Transform {
@@ -35,7 +37,15 @@ impl From<LookTransform> for Transform {
 
 impl LookTransform {
     pub fn new(eye: Vec3, target: Vec3) -> Self {
-        Self { eye, target }
+        Self {
+            eye,
+            target,
+            scale: 0.0,
+        }
+    }
+
+    pub fn new_with_scale(eye: Vec3, target: Vec3, scale: f32) -> Self {
+        Self { eye, target, scale }
     }
 
     pub fn radius(&self) -> f32 {
@@ -95,6 +105,7 @@ impl Smoother {
         let lerp_tfm = LookTransform {
             eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
             target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
+            scale: old_lerp_tfm.scale * self.lag_weight + new_tfm.scale * lead_weight,
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -104,12 +115,21 @@ impl Smoother {
 }
 
 fn look_transform_system(
-    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
+    mut cameras: Query<(
+        &LookTransform,
+        &mut Transform,
+        Option<&mut OrthographicProjection>,
+        Option<&mut Smoother>,
+    )>,
 ) {
-    for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
+    for (look_transform, mut scene_transform, orth, smoother) in cameras.iter_mut() {
         match smoother {
             Some(mut s) if s.enabled => {
-                *scene_transform = s.smooth_transform(look_transform).into()
+                let tr = s.smooth_transform(look_transform);
+                if let Some(mut projection) = orth {
+                    projection.scale = tr.scale;
+                }
+                *scene_transform = tr.into()
             }
             _ => (),
         };
