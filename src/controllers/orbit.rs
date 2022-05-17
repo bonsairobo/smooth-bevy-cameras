@@ -8,7 +8,7 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
-    render::prelude::*,
+    render::{camera::Camera3d, prelude::*},
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -29,8 +29,10 @@ impl OrbitCameraPlugin {
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
+            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
             .add_system(control_system)
             .add_event::<ControlEvent>();
+
         if !self.override_input_system {
             app.add_system(default_input_map);
         }
@@ -43,13 +45,13 @@ pub struct OrbitCameraBundle {
     #[bundle]
     look_transform: LookTransformBundle,
     #[bundle]
-    perspective: PerspectiveCameraBundle,
+    perspective: PerspectiveCameraBundle<Camera3d>,
 }
 
 impl OrbitCameraBundle {
     pub fn new(
         controller: OrbitCameraController,
-        mut perspective: PerspectiveCameraBundle,
+        mut perspective: PerspectiveCameraBundle<Camera3d>,
         eye: Vec3,
         target: Vec3,
     ) -> Self {
@@ -59,7 +61,7 @@ impl OrbitCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target },
+                transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -96,6 +98,8 @@ pub enum ControlEvent {
     TranslateTarget(Vec2),
     Zoom(f32),
 }
+
+define_on_controller_enabled_changed!(OrbitCameraController);
 
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,

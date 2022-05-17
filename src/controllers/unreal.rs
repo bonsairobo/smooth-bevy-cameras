@@ -8,7 +8,7 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
-    render::prelude::*,
+    render::{camera::Camera3d, prelude::*},
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -28,9 +28,12 @@ impl UnrealCameraPlugin {
 
 impl Plugin for UnrealCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app.add_system(apply_inputs).add_event::<ControlEvent>();
+        let app = app
+            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
+            .add_system(control_system)
+            .add_event::<ControlEvent>();
         if !self.override_input_system {
-            app.add_system(process_inputs);
+            app.add_system(default_input_map);
         }
     }
 }
@@ -41,13 +44,13 @@ pub struct UnrealCameraBundle {
     #[bundle]
     look_transform: LookTransformBundle,
     #[bundle]
-    perspective: PerspectiveCameraBundle,
+    perspective: PerspectiveCameraBundle<Camera3d>,
 }
 
 impl UnrealCameraBundle {
     pub fn new(
         controller: UnrealCameraController,
-        mut perspective: PerspectiveCameraBundle,
+        mut perspective: PerspectiveCameraBundle<Camera3d>,
         eye: Vec3,
         target: Vec3,
     ) -> Self {
@@ -57,7 +60,7 @@ impl UnrealCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target },
+                transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -105,13 +108,15 @@ impl Default for UnrealCameraController {
     }
 }
 
-enum ControlEvent {
+pub enum ControlEvent {
     Locomotion(Vec2),
     Rotate(Vec2),
     TranslateEye(Vec2),
 }
 
-fn process_inputs(
+define_on_controller_enabled_changed!(UnrealCameraController);
+
+pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
@@ -120,9 +125,7 @@ fn process_inputs(
     mut controllers: Query<&mut UnrealCameraController>,
 ) {
     // Can only control one camera at a time.
-    let mut controller = if let Some(controller) = controllers.iter_mut().find(|c| {
-        c.enabled
-    }) {
+    let mut controller = if let Some(controller) = controllers.iter_mut().find(|c| c.enabled) {
         controller
     } else {
         return;
@@ -229,50 +232,47 @@ fn process_inputs(
     }
 }
 
-fn apply_inputs(
+pub fn control_system(
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
     // Can only control one camera at a time.
-    let mut transform =
-        if let Some((_, transform)) = cameras.iter_mut().find(|c| {
-            c.0.enabled
-        }) {
-            transform
-        } else {
-            return;
-        };
+    let mut transform = if let Some((_, transform)) = cameras.iter_mut().find(|c| c.0.enabled) {
+        transform
+    } else {
+        return;
+    };
 
-        let look_vector;
-        match transform.look_direction() {
-            Some(safe_look_vector) => look_vector = safe_look_vector,
-            None => return,
-        }
-        let mut look_angles = LookAngles::from_vector(look_vector);
+    let look_vector;
+    match transform.look_direction() {
+        Some(safe_look_vector) => look_vector = safe_look_vector,
+        None => return,
+    }
+    let mut look_angles = LookAngles::from_vector(look_vector);
 
-        for event in events.iter() {
-            match event {
-                ControlEvent::Locomotion(delta) => {
-                    // Translates forward/backward and rotates about the Y axis.
-                    look_angles.add_yaw(-delta.x);
-                    transform.eye += delta.y * look_vector;
-                }
-                ControlEvent::Rotate(delta) => {
-                    // Rotates with pitch and yaw.
-                    look_angles.add_yaw(-delta.x);
-                    look_angles.add_pitch(-delta.y);
-                }
-                ControlEvent::TranslateEye(delta) => {
-                    let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
-                    let rot_x = yaw_rot * Vec3::X;
+    for event in events.iter() {
+        match event {
+            ControlEvent::Locomotion(delta) => {
+                // Translates forward/backward and rotates about the Y axis.
+                look_angles.add_yaw(-delta.x);
+                transform.eye += delta.y * look_vector;
+            }
+            ControlEvent::Rotate(delta) => {
+                // Rotates with pitch and yaw.
+                look_angles.add_yaw(-delta.x);
+                look_angles.add_pitch(-delta.y);
+            }
+            ControlEvent::TranslateEye(delta) => {
+                let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
+                let rot_x = yaw_rot * Vec3::X;
 
-                    // Translates up/down (Y) and left/right (X).
-                    transform.eye -= delta.x * rot_x - Vec3::new(0.0, delta.y, 0.0);
-                }
+                // Translates up/down (Y) and left/right (X).
+                transform.eye -= delta.x * rot_x - Vec3::new(0.0, delta.y, 0.0);
             }
         }
+    }
 
-        look_angles.assert_not_looking_up();
+    look_angles.assert_not_looking_up();
 
-        transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
+    transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
 }

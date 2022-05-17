@@ -34,6 +34,10 @@ impl From<LookTransform> for Transform {
 }
 
 impl LookTransform {
+    pub fn new(eye: Vec3, target: Vec3) -> Self {
+        Self { eye, target }
+    }
+
     pub fn radius(&self) -> f32 {
         (self.target - self.eye).length()
     }
@@ -56,6 +60,7 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
+    enabled: bool,
 }
 
 impl Smoother {
@@ -63,6 +68,16 @@ impl Smoother {
         Self {
             lag_weight,
             lerp_tfm: None,
+            enabled: true,
+        }
+    }
+
+    pub(crate) fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+        if self.enabled {
+            // To prevent camera jumping from last lerp before disabling to the current position,
+            // reset smoother state
+            self.lerp_tfm = None;
         }
     }
 
@@ -74,7 +89,7 @@ impl Smoother {
         debug_assert!(0.0 <= self.lag_weight);
         debug_assert!(self.lag_weight < 1.0);
 
-        let old_lerp_tfm = self.lerp_tfm.unwrap_or_else(|| *new_tfm);
+        let old_lerp_tfm = self.lerp_tfm.unwrap_or(*new_tfm);
 
         let lead_weight = 1.0 - self.lag_weight;
         let lerp_tfm = LookTransform {
@@ -92,11 +107,11 @@ fn look_transform_system(
     mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
 ) {
     for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
-        let effective_look_transform = if let Some(mut smoother) = smoother {
-            smoother.smooth_transform(look_transform)
-        } else {
-            *look_transform
+        match smoother {
+            Some(mut s) if s.enabled => {
+                *scene_transform = s.smooth_transform(look_transform).into()
+            }
+            _ => (),
         };
-        *scene_transform = effective_look_transform.into();
     }
 }
