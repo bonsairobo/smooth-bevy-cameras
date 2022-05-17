@@ -28,7 +28,10 @@ impl UnrealCameraPlugin {
 
 impl Plugin for UnrealCameraPlugin {
     fn build(&self, app: &mut App) {
-        let app = app.add_system(control_system).add_event::<ControlEvent>();
+        let app = app
+            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
+            .add_system(control_system)
+            .add_event::<ControlEvent>();
         if !self.override_input_system {
             app.add_system(default_input_map);
         }
@@ -57,7 +60,7 @@ impl UnrealCameraBundle {
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform { eye, target, scale: 1.0 },
+                transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             perspective,
@@ -111,6 +114,8 @@ pub enum ControlEvent {
     TranslateEye(Vec2),
 }
 
+define_on_controller_enabled_changed!(UnrealCameraController);
+
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
@@ -120,9 +125,7 @@ pub fn default_input_map(
     mut controllers: Query<&mut UnrealCameraController>,
 ) {
     // Can only control one camera at a time.
-    let mut controller = if let Some(controller) = controllers.iter_mut().find(|c| {
-        c.enabled
-    }) {
+    let mut controller = if let Some(controller) = controllers.iter_mut().find(|c| c.enabled) {
         controller
     } else {
         return;
@@ -234,45 +237,42 @@ pub fn control_system(
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
     // Can only control one camera at a time.
-    let mut transform =
-        if let Some((_, transform)) = cameras.iter_mut().find(|c| {
-            c.0.enabled
-        }) {
-            transform
-        } else {
-            return;
-        };
+    let mut transform = if let Some((_, transform)) = cameras.iter_mut().find(|c| c.0.enabled) {
+        transform
+    } else {
+        return;
+    };
 
-        let look_vector;
-        match transform.look_direction() {
-            Some(safe_look_vector) => look_vector = safe_look_vector,
-            None => return,
-        }
-        let mut look_angles = LookAngles::from_vector(look_vector);
+    let look_vector;
+    match transform.look_direction() {
+        Some(safe_look_vector) => look_vector = safe_look_vector,
+        None => return,
+    }
+    let mut look_angles = LookAngles::from_vector(look_vector);
 
-        for event in events.iter() {
-            match event {
-                ControlEvent::Locomotion(delta) => {
-                    // Translates forward/backward and rotates about the Y axis.
-                    look_angles.add_yaw(-delta.x);
-                    transform.eye += delta.y * look_vector;
-                }
-                ControlEvent::Rotate(delta) => {
-                    // Rotates with pitch and yaw.
-                    look_angles.add_yaw(-delta.x);
-                    look_angles.add_pitch(-delta.y);
-                }
-                ControlEvent::TranslateEye(delta) => {
-                    let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
-                    let rot_x = yaw_rot * Vec3::X;
+    for event in events.iter() {
+        match event {
+            ControlEvent::Locomotion(delta) => {
+                // Translates forward/backward and rotates about the Y axis.
+                look_angles.add_yaw(-delta.x);
+                transform.eye += delta.y * look_vector;
+            }
+            ControlEvent::Rotate(delta) => {
+                // Rotates with pitch and yaw.
+                look_angles.add_yaw(-delta.x);
+                look_angles.add_pitch(-delta.y);
+            }
+            ControlEvent::TranslateEye(delta) => {
+                let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
+                let rot_x = yaw_rot * Vec3::X;
 
-                    // Translates up/down (Y) and left/right (X).
-                    transform.eye -= delta.x * rot_x - Vec3::new(0.0, delta.y, 0.0);
-                }
+                // Translates up/down (Y) and left/right (X).
+                transform.eye -= delta.x * rot_x - Vec3::new(0.0, delta.y, 0.0);
             }
         }
+    }
 
-        look_angles.assert_not_looking_up();
+    look_angles.assert_not_looking_up();
 
-        transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
+    transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
 }

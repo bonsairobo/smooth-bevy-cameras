@@ -2,7 +2,7 @@ use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
     math::prelude::*,
-    transform::components::Transform, prelude::OrthographicProjection,
+    transform::components::Transform,
 };
 
 pub struct LookTransformPlugin;
@@ -25,7 +25,6 @@ pub struct LookTransformBundle {
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
-    pub scale: f32,
 }
 
 impl From<LookTransform> for Transform {
@@ -35,6 +34,10 @@ impl From<LookTransform> for Transform {
 }
 
 impl LookTransform {
+    pub fn new(eye: Vec3, target: Vec3) -> Self {
+        Self { eye, target }
+    }
+
     pub fn radius(&self) -> f32 {
         (self.target - self.eye).length()
     }
@@ -57,6 +60,7 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3) -> Transform {
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
+    enabled: bool,
 }
 
 impl Smoother {
@@ -64,6 +68,16 @@ impl Smoother {
         Self {
             lag_weight,
             lerp_tfm: None,
+            enabled: true,
+        }
+    }
+
+    pub(crate) fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+        if self.enabled {
+            // To prevent camera jumping from last lerp before disabling to the current position,
+            // reset smoother state
+            self.lerp_tfm = None;
         }
     }
 
@@ -75,13 +89,12 @@ impl Smoother {
         debug_assert!(0.0 <= self.lag_weight);
         debug_assert!(self.lag_weight < 1.0);
 
-        let old_lerp_tfm = self.lerp_tfm.unwrap_or_else(|| *new_tfm);
+        let old_lerp_tfm = self.lerp_tfm.unwrap_or(*new_tfm);
 
         let lead_weight = 1.0 - self.lag_weight;
         let lerp_tfm = LookTransform {
             eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
             target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
-            scale: old_lerp_tfm.scale * self.lag_weight + new_tfm.scale * lead_weight,
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -91,17 +104,14 @@ impl Smoother {
 }
 
 fn look_transform_system(
-    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut OrthographicProjection>, Option<&mut Smoother>)>,
+    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
 ) {
-    for (look_transform, mut scene_transform, orth, smoother) in cameras.iter_mut() {
-        let effective_look_transform = if let Some(mut smoother) = smoother {
-            smoother.smooth_transform(look_transform)
-        } else {
-            *look_transform
+    for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
+        match smoother {
+            Some(mut s) if s.enabled => {
+                *scene_transform = s.smooth_transform(look_transform).into()
+            }
+            _ => (),
         };
-        if let Some(mut projection) = orth {
-            projection.scale = effective_look_transform.scale;
-        }
-        *scene_transform = effective_look_transform.into();
     }
 }
