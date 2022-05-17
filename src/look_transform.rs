@@ -101,6 +101,10 @@ impl Smoother {
 
         lerp_tfm
     }
+
+    pub fn reset(&mut self, transform: &LookTransform) {
+        self.lerp_tfm = Some(transfrom.clone());
+    }
 }
 
 fn look_transform_system(
