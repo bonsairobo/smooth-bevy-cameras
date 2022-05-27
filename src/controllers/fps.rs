@@ -5,7 +5,6 @@ use bevy::{
     ecs::{bundle::Bundle, prelude::*},
     input::{mouse::MouseMotion, prelude::*},
     math::prelude::*,
-    render::{camera::Camera3d, prelude::*},
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -41,19 +40,17 @@ pub struct FpsCameraBundle {
     controller: FpsCameraController,
     #[bundle]
     look_transform: LookTransformBundle,
-    #[bundle]
-    perspective: PerspectiveCameraBundle<Camera3d>,
+    transform: Transform,
 }
 
 impl FpsCameraBundle {
     pub fn new(
         controller: FpsCameraController,
-        mut perspective: PerspectiveCameraBundle<Camera3d>,
         eye: Vec3,
         target: Vec3,
     ) -> Self {
         // Make sure the transform is consistent with the controller to start.
-        perspective.transform = Transform::from_translation(eye).looking_at(target, Vec3::Y);
+        let transform = Transform::from_translation(eye).looking_at(target, Vec3::Y);
 
         Self {
             controller,
@@ -61,7 +58,7 @@ impl FpsCameraBundle {
                 transform: LookTransform::new(eye, target),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
-            perspective,
+            transform,
         }
     }
 }

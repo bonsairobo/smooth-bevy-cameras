@@ -41,10 +41,11 @@ fn setup(
         ..Default::default()
     });
 
-    commands.spawn_bundle(FpsCameraBundle::new(
-        FpsCameraController::default(),
-        PerspectiveCameraBundle::default(),
-        Vec3::new(-2.0, 5.0, 5.0),
-        Vec3::new(0., 0., 0.),
-    ));
+    commands
+        .spawn_bundle(PerspectiveCameraBundle::default())
+        .insert_bundle(FpsCameraBundle::new(
+            FpsCameraController::default(),
+            Vec3::new(-2.0, 5.0, 5.0),
+            Vec3::new(0., 0., 0.),
+        ));
 }
