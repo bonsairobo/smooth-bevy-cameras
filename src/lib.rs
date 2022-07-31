@@ -33,7 +33,7 @@
 //!             transform: LookTransform::new(eye, target),
 //!             smoother: Smoother::new(0.9), // Value between 0.0 and 1.0, higher is smoother.
 //!         })
-//!         .insert_bundle(PerspectiveCameraBundle::default());
+//!         .insert_bundle(Camera3dBundle::default());
 //!
 //! }
 //!
