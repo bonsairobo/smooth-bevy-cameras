@@ -8,6 +8,7 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
+    time::Time,
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -91,11 +92,11 @@ impl Default for UnrealCameraController {
     fn default() -> Self {
         Self {
             enabled: true,
-            rotate_sensitivity: Vec2::splat(0.002),
-            mouse_translate_sensitivity: Vec2::splat(0.02),
-            wheel_translate_sensitivity: 1.0,
-            keyboard_mvmt_sensitivity: 0.1,
-            keyboard_mvmt_wheel_sensitivity: 0.1,
+            rotate_sensitivity: Vec2::splat(0.2),
+            mouse_translate_sensitivity: Vec2::splat(2.0),
+            wheel_translate_sensitivity: 50.0,
+            keyboard_mvmt_sensitivity: 10.0,
+            keyboard_mvmt_wheel_sensitivity: 5.0,
             smoothing_weight: 0.7,
         }
     }
@@ -226,6 +227,7 @@ pub fn default_input_map(
 }
 
 pub fn control_system(
+    time: Res<Time>,
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&UnrealCameraController, &mut LookTransform)>,
 ) {
@@ -243,24 +245,25 @@ pub fn control_system(
     }
     let mut look_angles = LookAngles::from_vector(look_vector);
 
+    let dt = time.delta_seconds();
     for event in events.iter() {
         match event {
             ControlEvent::Locomotion(delta) => {
                 // Translates forward/backward and rotates about the Y axis.
-                look_angles.add_yaw(-delta.x);
-                transform.eye += delta.y * look_vector;
+                look_angles.add_yaw(dt * -delta.x);
+                transform.eye += dt * delta.y * look_vector;
             }
             ControlEvent::Rotate(delta) => {
                 // Rotates with pitch and yaw.
-                look_angles.add_yaw(-delta.x);
-                look_angles.add_pitch(-delta.y);
+                look_angles.add_yaw(dt * -delta.x);
+                look_angles.add_pitch(dt * -delta.y);
             }
             ControlEvent::TranslateEye(delta) => {
                 let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
                 let rot_x = yaw_rot * Vec3::X;
 
                 // Translates up/down (Y) and left/right (X).
-                transform.eye -= delta.x * rot_x - Vec3::new(0.0, delta.y, 0.0);
+                transform.eye -= dt * delta.x * rot_x - Vec3::new(0.0, dt * delta.y, 0.0);
             }
         }
     }

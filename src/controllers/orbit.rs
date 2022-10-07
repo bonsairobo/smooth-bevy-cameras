@@ -8,6 +8,7 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
+    time::Time,
     transform::components::Transform,
 };
 use serde::{Deserialize, Serialize};
@@ -47,11 +48,7 @@ pub struct OrbitCameraBundle {
 }
 
 impl OrbitCameraBundle {
-    pub fn new(
-        controller: OrbitCameraController,
-        eye: Vec3,
-        target: Vec3,
-    ) -> Self {
+    pub fn new(controller: OrbitCameraController, eye: Vec3, target: Vec3) -> Self {
         // Make sure the transform is consistent with the controller to start.
         let transform = Transform::from_translation(eye).looking_at(target, Vec3::Y);
 
@@ -80,9 +77,9 @@ pub struct OrbitCameraController {
 impl Default for OrbitCameraController {
     fn default() -> Self {
         Self {
-            mouse_rotate_sensitivity: Vec2::splat(0.006),
-            mouse_translate_sensitivity: Vec2::splat(0.008),
-            mouse_wheel_zoom_sensitivity: 0.15,
+            mouse_rotate_sensitivity: Vec2::splat(0.08),
+            mouse_translate_sensitivity: Vec2::splat(0.1),
+            mouse_wheel_zoom_sensitivity: 0.2,
             smoothing_weight: 0.8,
             enabled: true,
             pixels_per_line: 53.0,
@@ -107,9 +104,7 @@ pub fn default_input_map(
     controllers: Query<&OrbitCameraController>,
 ) {
     // Can only control one camera at a time.
-    let controller = if let Some(controller) = controllers.iter().find(|c| {
-        c.enabled
-    }) {
+    let controller = if let Some(controller) = controllers.iter().find(|c| c.enabled) {
         controller
     } else {
         return;
@@ -150,43 +145,43 @@ pub fn default_input_map(
 }
 
 pub fn control_system(
+    time: Res<Time>,
     mut events: EventReader<ControlEvent>,
     mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform)>,
 ) {
     // Can only control one camera at a time.
     let (mut transform, scene_transform) =
-        if let Some((_, transform, scene_transform)) = cameras.iter_mut().find(|c| {
-            c.0.enabled
-        }) {
+        if let Some((_, transform, scene_transform)) = cameras.iter_mut().find(|c| c.0.enabled) {
             (transform, scene_transform)
         } else {
             return;
         };
 
-        let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
-        let mut radius_scalar = 1.0;
+    let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
+    let mut radius_scalar = 1.0;
 
-        for event in events.iter() {
-            match event {
-                ControlEvent::Orbit(delta) => {
-                    look_angles.add_yaw(-delta.x);
-                    look_angles.add_pitch(delta.y);
-                }
-                ControlEvent::TranslateTarget(delta) => {
-                    let right_dir = scene_transform.rotation * -Vec3::X;
-                    let up_dir = scene_transform.rotation * Vec3::Y;
-                    transform.target += delta.x * right_dir + delta.y * up_dir;
-                }
-                ControlEvent::Zoom(scalar) => {
-                    radius_scalar *= scalar;
-                }
+    let dt = time.delta_seconds();
+    for event in events.iter() {
+        match event {
+            ControlEvent::Orbit(delta) => {
+                look_angles.add_yaw(dt * -delta.x);
+                look_angles.add_pitch(dt * delta.y);
+            }
+            ControlEvent::TranslateTarget(delta) => {
+                let right_dir = scene_transform.rotation * -Vec3::X;
+                let up_dir = scene_transform.rotation * Vec3::Y;
+                transform.target += dt * delta.x * right_dir + dt * delta.y * up_dir;
+            }
+            ControlEvent::Zoom(scalar) => {
+                radius_scalar *= scalar;
             }
         }
+    }
 
-        look_angles.assert_not_looking_up();
+    look_angles.assert_not_looking_up();
 
-        let new_radius = (radius_scalar * transform.radius())
-            .min(1000000.0)
-            .max(0.001);
-        transform.eye = transform.target + new_radius * look_angles.unit_vector();
+    let new_radius = (radius_scalar * transform.radius())
+        .min(1000000.0)
+        .max(0.001);
+    transform.eye = transform.target + new_radius * look_angles.unit_vector();
 }
