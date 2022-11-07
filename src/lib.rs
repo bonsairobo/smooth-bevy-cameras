@@ -20,8 +20,8 @@
 //!         .add_plugins(DefaultPlugins)
 //!         // Enables the system that synchronizes your `Transform`s and `LookTransform`s.
 //!         .add_plugin(LookTransformPlugin)
-//!         .add_startup_system(setup.system())
-//!         .add_system(move_camera_system.system());
+//!         .add_startup_system(setup)
+//!         .add_system(move_camera_system);
 //! }
 //!
 //! fn setup(mut commands: Commands) {
@@ -29,7 +29,7 @@
 //!     let target = Vec3::default();
 //!
 //!     commands
-//!         .spawn_bundle(LookTransformBundle {
+//!         .spawn(LookTransformBundle {
 //!             transform: LookTransform::new(eye, target),
 //!             smoother: Smoother::new(0.9), // Value between 0.0 and 1.0, higher is smoother.
 //!         })
