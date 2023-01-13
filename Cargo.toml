@@ -1,7 +1,7 @@
 [package]
 name = "smooth-bevy-cameras"
 description = "Bevy camera controllers with buttery, exponential smoothing."
-version = "0.6.0"
+version = "0.7.0"
 repository = "https://github.com/bonsairobo/smooth-bevy-cameras"
 authors = ["Duncan <bonsairobo@gmail.com>"]
 keywords = ["bevy", "camera"]
@@ -24,7 +24,14 @@ version = "0.9"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
-features = ["bevy_asset", "bevy_core_pipeline", "bevy_pbr", "bevy_winit", "bevy_gltf", "bevy_render"]
+features = [
+    "bevy_asset",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_winit",
+    "bevy_gltf",
+    "bevy_render",
+]
 default-features = false
 
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]

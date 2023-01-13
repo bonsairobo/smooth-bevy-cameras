@@ -47,5 +47,6 @@ fn setup(
             UnrealCameraController::default(),
             Vec3::new(-2.0, 5.0, 5.0),
             Vec3::new(0., 0., 0.),
+            Vec3::Y,
         ));
 }

@@ -48,14 +48,14 @@ pub struct OrbitCameraBundle {
 }
 
 impl OrbitCameraBundle {
-    pub fn new(controller: OrbitCameraController, eye: Vec3, target: Vec3) -> Self {
+    pub fn new(controller: OrbitCameraController, eye: Vec3, target: Vec3, up: Vec3) -> Self {
         // Make sure the transform is consistent with the controller to start.
-        let transform = Transform::from_translation(eye).looking_at(target, Vec3::Y);
+        let transform = Transform::from_translation(eye).looking_at(target, up);
 
         Self {
             controller,
             look_transform: LookTransformBundle {
-                transform: LookTransform::new(eye, target),
+                transform: LookTransform::new(eye, target, up),
                 smoother: Smoother::new(controller.smoothing_weight),
             },
             transform,
