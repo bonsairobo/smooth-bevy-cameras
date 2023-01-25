@@ -238,11 +238,10 @@ pub fn control_system(
         return;
     };
 
-    let look_vector;
-    match transform.look_direction() {
-        Some(safe_look_vector) => look_vector = safe_look_vector,
+    let look_vector = match transform.look_direction() {
+        Some(safe_look_vector) => safe_look_vector,
         None => return,
-    }
+    };
     let mut look_angles = LookAngles::from_vector(look_vector);
 
     let dt = time.delta_seconds();
