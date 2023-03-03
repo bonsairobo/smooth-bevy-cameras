@@ -13,7 +13,7 @@ impl Plugin for LookTransformPlugin {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct LookTransformBundle {
     pub transform: LookTransform,
     pub smoother: Smoother,
@@ -57,7 +57,7 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3, up: Vec3) -> Transform 
 }
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
