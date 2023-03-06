@@ -29,7 +29,7 @@ impl UnrealCameraPlugin {
 impl Plugin for UnrealCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
-            .add_system_to_stage(CoreStage::PreUpdate, on_controller_enabled_changed)
+            .add_system(on_controller_enabled_changed.in_base_set(CoreSet::PreUpdate))
             .add_system(control_system)
             .add_event::<ControlEvent>();
         if !self.override_input_system {
