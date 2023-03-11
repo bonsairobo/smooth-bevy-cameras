@@ -1,15 +1,19 @@
 //! [![crates.io](https://img.shields.io/crates/v/smooth_bevy_cameras)](https://crates.io/crates/smooth_bevy_cameras)
 //! [![docs.rs](https://docs.rs/smooth-bevy-cameras/badge.svg)](https://docs.rs/smooth-bevy-cameras)
 //!
-//! A collection of exponentially-smoothed camera controllers for the Bevy Engine.
+//! A collection of exponentially-smoothed camera controllers for the Bevy
+//! Engine.
 //!
 //! # Look Transform
 //!
-//! All controllers are based on a `LookTransform` component, which is just an `eye` point that looks at a `target` point. By
-//! modifying this component, the scene graph `Transform` will automatically be synchronized.
+//! All controllers are based on a [`LookTransform`] component, which is just an
+//! `eye` point that looks at a `target` point. By modifying this component, the
+//! scene graph `Transform` will automatically be synchronized.
 //!
-//! Any entities with `{Transform, LookTransform, Smoother}` components will automatically have their `Transform` smoothed.
-//! Smoothing will have no effect on the `LookTransform`, only the final `Transform` in the scene graph.
+//! Any entities with all of `Transform`, LookTransform, and [`Smoother`]
+//! components will automatically have their `Transform` smoothed. Smoothing
+//! will have no effect on the `LookTransform`, only the final `Transform` in
+//! the scene graph.
 //!
 //! ```rust
 //! use bevy::prelude::*;
@@ -45,8 +49,9 @@
 //!
 //! # Look Angles
 //!
-//! When implementing a camera controller, it's often useful to work directly with the angles (pitch and yaw) of your look
-//! direction. You can do this with the `LookAngles` type:
+//! When implementing a camera controller, it's often useful to work directly
+//! with the angles (pitch and yaw) of your look direction. You can do this with
+//! the [`LookAngles`] type:
 //!
 //! ```rust
 //! use bevy::prelude::*;
@@ -70,26 +75,33 @@
 //!
 //! # Built-In Controllers
 //!
-//! These plugins depend on the `LookTransformPlugin`:
+//! These plugins depend on the [`LookTransformPlugin`]:
 //!
-//! - `FpsCameraPlugin` + `FpsCameraBundle`
+//! - [`FpsCameraPlugin`](crate::controllers::fps::FpsCameraPlugin) +
+//!   [`FpsCameraBundle`](crate::controllers::fps::FpsCameraBundle)
 //!   - WASD: Translate on the XZ plane
 //!   - Shift/Space: Translate along the Y axis
 //!   - Mouse: Rotate camera
-//! - `OrbitCameraPlugin` + `OrbitCameraBundle`
+//! - [`OrbitCameraPlugin`](crate::controllers::orbit::OrbitCameraPlugin) +
+//!   [`OrbitCameraBundle`](crate::controllers::orbit::OrbitCameraBundle)
 //!   - CTRL + mouse drag: Rotate camera
 //!   - Right mouse drag: Pan camera
 //!   - Mouse wheel: Zoom
-//! - `UnrealCameraPlugin` + `UnrealCameraBundle`
-//!   Best use: hold Right mouse button to orbit the view while using WASD to navigate in the scene,
-//!   using scroll wheel to accelerate/decelerate.
+//! - [`UnrealCameraPlugin`](crate::controllers::unreal::UnrealCameraPlugin) +
+//!   [`UnrealCameraBundle`](crate::controllers::unreal::UnrealCameraBundle)
+//!
+//!   Best use: hold Right mouse button to orbit the view while using WASD to
+//!   navigate in the scene, using scroll wheel to accelerate/decelerate.
 //!   - Left mouse drag: Locomotion
 //!   - Right mouse drag: Rotate camera
 //!   - Left and Right or Middle mouse drag: Pan camera
-//!   - While holding any mouse button, use A/D for panning left/right, Q/E for panning up/down
+//!   - While holding any mouse button, use A/D for panning left/right, Q/E for
+//!     panning up/down
 //!   - While holding any mouse button, use W/S for locomotion forward/backward
-//!   - While holding any mouse button, use scroll wheel to increase/decrease locomotion and panning speeds
-//!   - While holding no mouse button, use scroll wheel for locomotion forward/backward
+//!   - While holding any mouse button, use scroll wheel to increase/decrease
+//!     locomotion and panning speeds
+//!   - While holding no mouse button, use scroll wheel for locomotion
+//!     forward/backward
 
 pub mod controllers;
 
