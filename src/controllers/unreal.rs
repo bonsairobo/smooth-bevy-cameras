@@ -11,7 +11,6 @@ use bevy::{
     time::Time,
     transform::components::Transform,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Default)]
 pub struct UnrealCameraPlugin {
@@ -63,7 +62,8 @@ impl UnrealCameraBundle {
 }
 
 /// A camera controlled with the mouse in the same way as Unreal Engine's viewport controller.
-#[derive(Clone, Component, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Component, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct UnrealCameraController {
     /// Whether to process input or ignore it
     pub enabled: bool,

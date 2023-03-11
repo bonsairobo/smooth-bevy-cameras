@@ -8,7 +8,6 @@ use bevy::{
     time::Time,
     transform::components::Transform,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Default)]
 pub struct FpsCameraPlugin {
@@ -61,7 +60,8 @@ impl FpsCameraBundle {
 }
 
 /// Your typical first-person camera controller.
-#[derive(Clone, Component, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Component, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FpsCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,

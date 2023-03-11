@@ -11,7 +11,6 @@ use bevy::{
     time::Time,
     transform::components::Transform,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Default)]
 pub struct OrbitCameraPlugin {
@@ -64,7 +63,8 @@ impl OrbitCameraBundle {
 }
 
 /// A 3rd person camera that orbits around the target.
-#[derive(Clone, Component, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Component, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct OrbitCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,

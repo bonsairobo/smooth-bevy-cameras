@@ -10,7 +10,8 @@ license = "MIT"
 
 [dependencies]
 approx = "0.5"
-serde = "1.0"
+
+serde = { version = "1.0", optional = true }
 
 [dependencies.bevy]
 version = "0.10"
