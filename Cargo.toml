@@ -9,7 +9,7 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-approx = "0.5.1"
+approx = "0.5"
 serde = "1.0"
 
 [dependencies.bevy]
@@ -20,7 +20,7 @@ version = "0.10"
 default-features = false
 
 [dev-dependencies.bevy]
-version = "0.10.0"
+version = "0.10"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
@@ -35,7 +35,7 @@ features = [
 default-features = false
 
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]
-version = "0.10.0"
+version = "0.10"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
