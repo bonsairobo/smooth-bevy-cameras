@@ -9,7 +9,7 @@ use bevy::{
     },
     math::prelude::*,
     time::Time,
-    transform::components::Transform,
+    transform::components::Transform, prelude::Projection,
 };
 
 #[derive(Default)]
@@ -28,6 +28,7 @@ impl OrbitCameraPlugin {
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
+            .add_system(setup_orthographic_transform)
             .add_system(on_controller_enabled_changed.in_base_set(CoreSet::PreUpdate))
             .add_system(control_system)
             .add_event::<ControlEvent>();
@@ -72,6 +73,7 @@ pub struct OrbitCameraController {
     pub mouse_wheel_zoom_sensitivity: f32,
     pub pixels_per_line: f32,
     pub smoothing_weight: f32,
+    pub ortho_setup: bool,
 }
 
 impl Default for OrbitCameraController {
@@ -83,6 +85,7 @@ impl Default for OrbitCameraController {
             smoothing_weight: 0.8,
             enabled: true,
             pixels_per_line: 53.0,
+            ortho_setup: false
         }
     }
 }
@@ -94,6 +97,26 @@ pub enum ControlEvent {
 }
 
 define_on_controller_enabled_changed!(OrbitCameraController);
+
+fn setup_orthographic_transform(
+    mut cameras: Query<(&mut OrbitCameraController, &mut LookTransform, &Projection)>,
+) {
+    let (mut cc, mut transform, projection) =
+        if let Some((cc, transform, projection)) = cameras.iter_mut().find(|c| c.0.enabled) {
+            (cc, transform, projection)
+        } else {
+            return;
+        };
+    if cc.ortho_setup { return; }
+    else { cc.ortho_setup = true; }
+
+    let scale = if let Projection::Orthographic(ref o) = projection {
+        o.scale
+    } else {
+        0.0
+    };
+    transform.scale = 2.0;
+}
 
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
@@ -147,18 +170,19 @@ pub fn default_input_map(
 pub fn control_system(
     time: Res<Time>,
     mut events: EventReader<ControlEvent>,
-    mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform)>,
+    mut cameras: Query<(&OrbitCameraController, &mut LookTransform, &Transform, &Projection)>,
 ) {
     // Can only control one camera at a time.
-    let (mut transform, scene_transform) =
-        if let Some((_, transform, scene_transform)) = cameras.iter_mut().find(|c| c.0.enabled) {
-            (transform, scene_transform)
+    let (mut transform, scene_transform, projection) =
+        if let Some((_, transform, scene_transform, proj)) = cameras.iter_mut().find(|c| c.0.enabled) {
+            (transform, scene_transform, proj)
         } else {
             return;
         };
 
     let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
     let mut radius_scalar = 1.0;
+    let is_orthographic = matches!(projection, Projection::Orthographic(_));
 
     let dt = time.delta_seconds();
     for event in events.iter() {
@@ -170,7 +194,12 @@ pub fn control_system(
             ControlEvent::TranslateTarget(delta) => {
                 let right_dir = scene_transform.rotation * -Vec3::X;
                 let up_dir = scene_transform.rotation * Vec3::Y;
-                transform.target += dt * delta.x * right_dir + dt * delta.y * up_dir;
+                let mut translation = dt * delta.x * right_dir + dt * delta.y * up_dir;
+                if is_orthographic {
+                    let scale = transform.scale * 0.5;
+                    translation *= scale;
+                }
+                transform.target += translation;
             }
             ControlEvent::Zoom(scalar) => {
                 radius_scalar *= scalar;
@@ -180,8 +209,13 @@ pub fn control_system(
 
     look_angles.assert_not_looking_up();
 
-    let new_radius = (radius_scalar * transform.radius())
-        .min(1000000.0)
-        .max(0.001);
-    transform.eye = transform.target + new_radius * look_angles.unit_vector();
+    if is_orthographic {
+        transform.scale *= radius_scalar;
+        transform.eye = transform.target + transform.radius() * look_angles.unit_vector();
+    } else {
+        let new_radius = (radius_scalar * transform.radius())
+            .min(1000000.0)
+            .max(0.001);
+        transform.eye = transform.target + new_radius * look_angles.unit_vector();
+    }
 }

@@ -2,7 +2,7 @@ use bevy::{
     app::prelude::*,
     ecs::{bundle::Bundle, prelude::*},
     math::prelude::*,
-    transform::components::Transform,
+    transform::components::Transform, prelude::Projection,
 };
 
 pub struct LookTransformPlugin;
@@ -26,6 +26,7 @@ pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
     pub up: Vec3,
+    pub scale: f32,
 }
 
 impl From<LookTransform> for Transform {
@@ -36,7 +37,7 @@ impl From<LookTransform> for Transform {
 
 impl LookTransform {
     pub fn new(eye: Vec3, target: Vec3, up: Vec3) -> Self {
-        Self { eye, target, up }
+        Self { eye, target, up, scale: 0.0 }
     }
 
     pub fn radius(&self) -> f32 {
@@ -97,6 +98,7 @@ impl Smoother {
             eye: old_lerp_tfm.eye * self.lag_weight + new_tfm.eye * lead_weight,
             target: old_lerp_tfm.target * self.lag_weight + new_tfm.target * lead_weight,
             up: new_tfm.up,
+            scale: old_lerp_tfm.scale * self.lag_weight + new_tfm.scale * lead_weight,
         };
 
         self.lerp_tfm = Some(lerp_tfm);
@@ -110,12 +112,16 @@ impl Smoother {
 }
 
 fn look_transform_system(
-    mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
+    mut cameras: Query<(&LookTransform, &mut Transform, &mut Projection, Option<&mut Smoother>)>,
 ) {
-    for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
+    for (look_transform, mut scene_transform, mut projection, smoother) in cameras.iter_mut() {
         match smoother {
             Some(mut s) if s.enabled => {
-                *scene_transform = s.smooth_transform(look_transform).into()
+                let tr = s.smooth_transform(look_transform);
+                if let Projection::Orthographic(orth) = projection.as_mut() {
+                    orth.scale =  tr.scale;
+                }
+                *scene_transform = tr.into()
             }
             _ => (),
         };
