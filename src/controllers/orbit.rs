@@ -159,6 +159,7 @@ pub fn control_system(
 
     let mut look_angles = LookAngles::from_vector(-transform.look_direction().unwrap());
     let mut radius_scalar = 1.0;
+    let radius = transform.radius();
 
     let dt = time.delta_seconds();
     for event in events.iter() {
@@ -180,8 +181,6 @@ pub fn control_system(
 
     look_angles.assert_not_looking_up();
 
-    let new_radius = (radius_scalar * transform.radius())
-        .min(1000000.0)
-        .max(0.001);
+    let new_radius = (radius_scalar * radius).min(1000000.0).max(0.001);
     transform.eye = transform.target + new_radius * look_angles.unit_vector();
 }
