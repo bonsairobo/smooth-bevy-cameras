@@ -14,14 +14,14 @@ approx = "0.5"
 serde = { version = "1.0", optional = true }
 
 [dependencies.bevy]
-version = "0.10"
+version = "0.11"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
 default-features = false
 
 [dev-dependencies.bevy]
-version = "0.10"
+version = "0.11"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
@@ -36,7 +36,7 @@ features = [
 default-features = false
 
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]
-version = "0.10"
+version = "0.11"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"

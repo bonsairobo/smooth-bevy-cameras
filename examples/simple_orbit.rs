@@ -8,9 +8,9 @@ fn main() {
     App::new()
         .insert_resource(Msaa::Sample4)
         .add_plugins(DefaultPlugins)
-        .add_plugin(LookTransformPlugin)
-        .add_plugin(OrbitCameraPlugin::default())
-        .add_startup_system(setup)
+        .add_plugins(LookTransformPlugin)
+        .add_plugins(OrbitCameraPlugin::default())
+        .add_systems(Startup, setup)
         .run();
 }
 
