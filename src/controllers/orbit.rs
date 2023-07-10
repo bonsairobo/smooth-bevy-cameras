@@ -28,12 +28,12 @@ impl OrbitCameraPlugin {
 impl Plugin for OrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
-            .add_system(on_controller_enabled_changed.in_base_set(CoreSet::PreUpdate))
-            .add_system(control_system)
+            .add_systems(PreUpdate, on_controller_enabled_changed)
+            .add_systems(Update, control_system)
             .add_event::<ControlEvent>();
 
         if !self.override_input_system {
-            app.add_system(default_input_map);
+            app.add_systems(Update, default_input_map);
         }
     }
 }
@@ -41,7 +41,6 @@ impl Plugin for OrbitCameraPlugin {
 #[derive(Bundle)]
 pub struct OrbitCameraBundle {
     controller: OrbitCameraController,
-    #[bundle]
     look_transform: LookTransformBundle,
     transform: Transform,
 }
@@ -87,6 +86,7 @@ impl Default for OrbitCameraController {
     }
 }
 
+#[derive(Event)]
 pub enum ControlEvent {
     Orbit(Vec2),
     TranslateTarget(Vec2),
@@ -122,7 +122,7 @@ pub fn default_input_map(
         cursor_delta += event.delta;
     }
 
-    if keyboard.pressed(KeyCode::LControl) {
+    if keyboard.pressed(KeyCode::ControlLeft) {
         events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
     }
 

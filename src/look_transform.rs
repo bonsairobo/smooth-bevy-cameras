@@ -9,7 +9,7 @@ pub struct LookTransformPlugin;
 
 impl Plugin for LookTransformPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(look_transform_system);
+        app.add_systems(Update, look_transform_system);
     }
 }
 
