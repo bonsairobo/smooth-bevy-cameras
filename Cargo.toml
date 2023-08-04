@@ -25,20 +25,33 @@ version = "0.11"
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
+default-features = false
 features = [
     "bevy_asset",
     "bevy_core_pipeline",
     "bevy_pbr",
-    "bevy_winit",
-    "bevy_gltf",
     "bevy_render",
+    "bevy_winit",
+    "ktx2",
+    "tonemapping_luts",
+    "zstd",
 ]
-default-features = false
 
 [target.'cfg(target_os = "linux")'.dev-dependencies.bevy]
 version = "0.11"
+features = [
+    "bevy_asset",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_render",
+    "bevy_winit",
+    "ktx2",
+    "tonemapping_luts",
+    "wayland",
+    "x11",
+    "zstd",
+]
+default-features = false
 # git = "https://github.com/bevyengine/bevy"
 # rev = "f3de12bc"
 # branch = "main"
-features = ["bevy_asset", "x11", "wayland"]
-default-features = false
