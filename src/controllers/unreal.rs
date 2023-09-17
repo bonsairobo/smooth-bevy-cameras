@@ -9,7 +9,7 @@ use bevy::{
     },
     math::prelude::*,
     time::Time,
-    transform::components::Transform,
+    transform::components::Transform, reflect::Reflect, prelude::ReflectDefault,
 };
 
 #[derive(Default)]
@@ -61,8 +61,9 @@ impl UnrealCameraBundle {
 }
 
 /// A camera controlled with the mouse in the same way as Unreal Engine's viewport controller.
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Component, Copy, Debug, Reflect)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[reflect(Component, Default, Debug)]
 pub struct UnrealCameraController {
     /// Whether to process input or ignore it
     pub enabled: bool,

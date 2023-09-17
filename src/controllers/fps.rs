@@ -2,11 +2,11 @@ use crate::{LookAngles, LookTransform, LookTransformBundle, Smoother};
 
 use bevy::{
     app::prelude::*,
-    ecs::{bundle::Bundle, prelude::*},
+    ecs::prelude::*,
     input::{mouse::MouseMotion, prelude::*},
     math::prelude::*,
     time::Time,
-    transform::components::Transform,
+    transform::components::Transform, reflect::Reflect, prelude::ReflectDefault,
 };
 
 #[derive(Default)]
@@ -59,8 +59,9 @@ impl FpsCameraBundle {
 }
 
 /// Your typical first-person camera controller.
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Component, Copy, Debug, Reflect)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[reflect(Component, Default, Debug)]
 pub struct FpsCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,
