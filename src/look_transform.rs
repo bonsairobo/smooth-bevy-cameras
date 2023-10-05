@@ -20,7 +20,7 @@ pub struct LookTransformBundle {
 /// An eye and the target it's looking at. As a component, this can be modified in place of bevy's `Transform`, and the two will
 /// stay in sync.
 #[derive(Component, Debug, PartialEq, Clone, Copy, Reflect)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[reflect(Component, Default, Debug, PartialEq)]
 pub struct LookTransform {
     pub eye: Vec3,
@@ -68,7 +68,7 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3, up: Vec3) -> Transform 
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
 #[derive(Clone, Component, Copy, Debug, Reflect)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[reflect(Component, Default, Debug)]
 pub struct Smoother {
     lag_weight: f32,

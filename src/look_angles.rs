@@ -5,7 +5,7 @@ const PI: f32 = std::f32::consts::PI;
 
 /// A (yaw, pitch) pair representing a direction.
 #[derive(Debug, PartialEq, Clone, Copy, Default, Reflect)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[reflect(Default, Debug, PartialEq)]
 pub struct LookAngles {
     // The fields are protected to keep them in an allowable range for the camera transform.
