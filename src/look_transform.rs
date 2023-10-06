@@ -1,7 +1,5 @@
 use bevy::{
-    app::prelude::*,
-    ecs::{bundle::Bundle, prelude::*},
-    math::prelude::*,
+    app::prelude::*, ecs::prelude::*, math::prelude::*, prelude::ReflectDefault, reflect::Reflect,
     transform::components::Transform,
 };
 
@@ -21,7 +19,9 @@ pub struct LookTransformBundle {
 
 /// An eye and the target it's looking at. As a component, this can be modified in place of bevy's `Transform`, and the two will
 /// stay in sync.
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Component, Debug, PartialEq, Clone, Copy, Reflect)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[reflect(Component, Default, Debug, PartialEq)]
 pub struct LookTransform {
     pub eye: Vec3,
     pub target: Vec3,
@@ -31,6 +31,16 @@ pub struct LookTransform {
 impl From<LookTransform> for Transform {
     fn from(t: LookTransform) -> Self {
         eye_look_at_target_transform(t.eye, t.target, t.up)
+    }
+}
+
+impl Default for LookTransform {
+    fn default() -> Self {
+        Self {
+            eye: Vec3::default(),
+            target: Vec3::default(),
+            up: Vec3::Y,
+        }
     }
 }
 
@@ -57,11 +67,23 @@ fn eye_look_at_target_transform(eye: Vec3, target: Vec3, up: Vec3) -> Transform 
 }
 
 /// Preforms exponential smoothing on a `LookTransform`. Set the `lag_weight` between `0.0` and `1.0`, where higher is smoother.
-#[derive(Component, Clone)]
+#[derive(Clone, Component, Copy, Debug, Reflect)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[reflect(Component, Default, Debug)]
 pub struct Smoother {
     lag_weight: f32,
     lerp_tfm: Option<LookTransform>,
     enabled: bool,
+}
+
+impl Default for Smoother {
+    fn default() -> Self {
+        Self {
+            lag_weight: 0.9,
+            lerp_tfm: Some(LookTransform::default()),
+            enabled: true,
+        }
+    }
 }
 
 impl Smoother {

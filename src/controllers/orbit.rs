@@ -8,6 +8,8 @@ use bevy::{
         prelude::*,
     },
     math::prelude::*,
+    prelude::ReflectDefault,
+    reflect::Reflect,
     time::Time,
     transform::components::Transform,
 };
@@ -62,8 +64,9 @@ impl OrbitCameraBundle {
 }
 
 /// A 3rd person camera that orbits around the target.
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Component, Copy, Debug, Reflect)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[reflect(Component, Default, Debug)]
 pub struct OrbitCameraController {
     pub enabled: bool,
     pub mouse_rotate_sensitivity: Vec2,
