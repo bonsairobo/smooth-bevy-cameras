@@ -131,7 +131,7 @@ impl Smoother {
     }
 }
 
-fn look_transform_system(
+pub fn look_transform_system(
     mut cameras: Query<(&LookTransform, &mut Transform, Option<&mut Smoother>)>,
 ) {
     for (look_transform, mut scene_transform, smoother) in cameras.iter_mut() {
