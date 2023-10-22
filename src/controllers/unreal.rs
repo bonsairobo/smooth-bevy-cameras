@@ -264,8 +264,9 @@ pub fn control_system(
                 let yaw_rot = Quat::from_axis_angle(Vec3::Y, look_angles.get_yaw());
                 let rot_x = yaw_rot * Vec3::X;
 
-                // Translates up/down (Y) and left/right (X).
-                transform.eye -= dt * delta.x * rot_x - Vec3::new(0.0, dt * delta.y, 0.0);
+                // Translates up/down and left/right (X).
+                let up = transform.up;
+                transform.eye -= dt * delta.x * rot_x - dt * delta.y * up;
             }
         }
     }
