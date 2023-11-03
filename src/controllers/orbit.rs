@@ -191,9 +191,10 @@ pub fn control_system(
                 look_angles.add_pitch(dt * delta.y);
             }
             ControlEvent::TranslateTarget(delta) => {
+                let radius = &transform.radius();
                 let right_dir = scene_transform.rotation * -Vec3::X;
                 let up_dir = scene_transform.rotation * Vec3::Y;
-                transform.target += dt * delta.x * right_dir + dt * delta.y * up_dir;
+                transform.target += *radius * (dt * delta.x * right_dir + dt * delta.y * up_dir);
             }
             ControlEvent::Zoom(scalar) => {
                 radius_scalar *= scalar;

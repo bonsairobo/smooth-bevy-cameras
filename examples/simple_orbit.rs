@@ -49,7 +49,7 @@ fn setup(
         .insert(OrbitCameraBundle::new(
             OrbitCameraController {
                 mouse_rotate_sensitivity: Vec2::splat(0.8),
-                mouse_translate_sensitivity: Vec2::splat(1.0),
+                mouse_translate_sensitivity: Vec2::splat(0.2),
                 mouse_wheel_zoom_sensitivity: 1.0,
                 ..default()
             },
