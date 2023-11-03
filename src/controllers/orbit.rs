@@ -32,7 +32,6 @@ impl Plugin for OrbitCameraPlugin {
         let app = app
             .add_systems(PreUpdate, on_controller_enabled_changed)
             .add_systems(Update, control_system)
-            .add_state::<ControlState>()
             .add_event::<ControlEvent>();
 
         if !self.override_input_system {
@@ -70,6 +69,7 @@ impl OrbitCameraBundle {
 #[reflect(Component, Default, Debug)]
 pub struct OrbitCameraController {
     pub enabled: bool,
+    pub control_state: ControlState,
     pub mouse_rotate_sensitivity: Vec2,
     pub mouse_translate_sensitivity: Vec2,
     pub mouse_wheel_zoom_sensitivity: f32,
@@ -85,7 +85,21 @@ impl Default for OrbitCameraController {
             mouse_wheel_zoom_sensitivity: 0.2,
             smoothing_weight: 0.8,
             enabled: true,
+            control_state: ControlState::PCMode,
             pixels_per_line: 53.0,
+        }
+    }
+}
+
+impl OrbitCameraController {
+    pub fn toggle_control_state(&mut self) {
+        match self.control_state {
+            ControlState::PCMode => {
+                self.control_state = ControlState::TrackPadMode;
+            }
+            ControlState::TrackPadMode => {
+                self.control_state = ControlState::PCMode;
+            }
         }
     }
 }
@@ -99,10 +113,10 @@ pub enum ControlEvent {
 
 define_on_controller_enabled_changed!(OrbitCameraController);
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, Reflect)]
 pub enum ControlState {
-    PCMode,
     #[default]
+    PCMode,
     TrackPadMode,
 }
 
@@ -110,7 +124,6 @@ pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
-    control_state: Res<State<ControlState>>,
     mouse_buttons: Res<Input<MouseButton>>,
     keyboard: Res<Input<KeyCode>>,
     controllers: Query<&OrbitCameraController>,
@@ -134,7 +147,7 @@ pub fn default_input_map(
         cursor_delta += event.delta;
     }
 
-    if *control_state == ControlState::TrackPadMode {
+    if controller.control_state == ControlState::TrackPadMode {
         if keyboard.pressed(KeyCode::ShiftLeft) {
             events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
         }
@@ -144,7 +157,7 @@ pub fn default_input_map(
                 mouse_translate_sensitivity * cursor_delta,
             ));
         }
-    } else if *control_state == ControlState::PCMode {
+    } else if controller.control_state == ControlState::PCMode {
         if keyboard.pressed(KeyCode::ShiftLeft) && mouse_buttons.pressed(MouseButton::Middle) {
             events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
         } else if mouse_buttons.pressed(MouseButton::Middle) {

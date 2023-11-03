@@ -13,6 +13,7 @@ fn main() {
         .add_plugins(LookTransformPlugin)
         .add_plugins(OrbitCameraPlugin::default())
         .add_systems(Startup, setup)
+        .add_systems(Update, switch_control_state)
         .run();
 }
 
@@ -60,4 +61,16 @@ fn setup(
             Vec3::new(0., 0., 0.),
             Vec3::Y,
         ));
+}
+
+fn switch_control_state(
+    mut query: Query<&mut OrbitCameraController>,
+    keyboard: Res<Input<KeyCode>>,
+) {
+    if !keyboard.just_pressed(KeyCode::P) {
+        return;
+    }
+    if let Ok(mut controller) = query.get_single_mut() {
+        controller.toggle_control_state();
+    }
 }
