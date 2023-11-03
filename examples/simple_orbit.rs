@@ -47,7 +47,12 @@ fn setup(
     commands
         .spawn(Camera3dBundle::default())
         .insert(OrbitCameraBundle::new(
-            OrbitCameraController::default(),
+            OrbitCameraController {
+                mouse_rotate_sensitivity: Vec2::splat(0.8),
+                mouse_translate_sensitivity: Vec2::splat(1.0),
+                mouse_wheel_zoom_sensitivity: 1.0,
+                ..default()
+            },
             Vec3::new(-2.0, 5.0, 5.0),
             Vec3::new(0., 0., 0.),
             Vec3::Y,

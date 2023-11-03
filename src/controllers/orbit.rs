@@ -32,6 +32,7 @@ impl Plugin for OrbitCameraPlugin {
         let app = app
             .add_systems(PreUpdate, on_controller_enabled_changed)
             .add_systems(Update, control_system)
+            .add_state::<ControlState>()
             .add_event::<ControlEvent>();
 
         if !self.override_input_system {
@@ -98,10 +99,18 @@ pub enum ControlEvent {
 
 define_on_controller_enabled_changed!(OrbitCameraController);
 
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum ControlState {
+    PCMode,
+    #[default]
+    TrackPadMode,
+}
+
 pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
+    control_state: Res<State<ControlState>>,
     mouse_buttons: Res<Input<MouseButton>>,
     keyboard: Res<Input<KeyCode>>,
     controllers: Query<&OrbitCameraController>,
@@ -125,14 +134,24 @@ pub fn default_input_map(
         cursor_delta += event.delta;
     }
 
-    if keyboard.pressed(KeyCode::ControlLeft) {
-        events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
-    }
+    if *control_state == ControlState::TrackPadMode {
+        if keyboard.pressed(KeyCode::ShiftLeft) {
+            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
+        }
 
-    if mouse_buttons.pressed(MouseButton::Right) {
-        events.send(ControlEvent::TranslateTarget(
-            mouse_translate_sensitivity * cursor_delta,
-        ));
+        if keyboard.pressed(KeyCode::ControlLeft) {
+            events.send(ControlEvent::TranslateTarget(
+                mouse_translate_sensitivity * cursor_delta,
+            ));
+        }
+    } else if *control_state == ControlState::PCMode {
+        if keyboard.pressed(KeyCode::ShiftLeft) && mouse_buttons.pressed(MouseButton::Middle) {
+            events.send(ControlEvent::Orbit(mouse_rotate_sensitivity * cursor_delta));
+        } else if mouse_buttons.pressed(MouseButton::Middle) {
+            events.send(ControlEvent::TranslateTarget(
+                mouse_translate_sensitivity * cursor_delta,
+            ));
+        }
     }
 
     let mut scalar = 1.0;
