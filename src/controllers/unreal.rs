@@ -141,12 +141,12 @@ pub fn default_input_map(
     let middle_pressed = mouse_buttons.pressed(MouseButton::Middle);
 
     let mut cursor_delta = Vec2::ZERO;
-    for event in mouse_motion_events.iter() {
+    for event in mouse_motion_events.read() {
         cursor_delta += event.delta;
     }
 
     let mut wheel_delta = 0.0;
-    for event in mouse_wheel_reader.iter() {
+    for event in mouse_wheel_reader.read() {
         wheel_delta += event.x + event.y;
     }
 
@@ -248,7 +248,7 @@ pub fn control_system(
     let mut look_angles = LookAngles::from_vector(look_vector);
 
     let dt = time.delta_seconds();
-    for event in events.iter() {
+    for event in events.read() {
         match event {
             ControlEvent::Locomotion(delta) => {
                 // Translates forward/backward and rotates about the Y axis.
