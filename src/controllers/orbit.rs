@@ -207,7 +207,8 @@ pub fn control_system(
                 let radius = &transform.radius();
                 let right_dir = scene_transform.rotation * -Vec3::X;
                 let up_dir = scene_transform.rotation * Vec3::Y;
-                transform.target += *radius * (dt * delta.x * right_dir + dt * delta.y * up_dir);
+                transform.target +=
+                    (*radius).sqrt() * (dt * delta.x * right_dir + dt * delta.y * up_dir);
             }
             ControlEvent::Zoom(scalar) => {
                 radius_scalar *= scalar;
