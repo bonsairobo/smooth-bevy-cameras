@@ -117,8 +117,8 @@ pub fn default_input_map(
     mut events: EventWriter<ControlEvent>,
     mut mouse_wheel_reader: EventReader<MouseWheel>,
     mut mouse_motion_events: EventReader<MouseMotion>,
-    keyboard: Res<Input<KeyCode>>,
-    mouse_buttons: Res<Input<MouseButton>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut controllers: Query<&mut UnrealCameraController>,
 ) {
     // Can only control one camera at a time.
@@ -155,27 +155,27 @@ pub fn default_input_map(
 
     for key in keyboard.get_pressed() {
         match key {
-            KeyCode::E => {
+            KeyCode::KeyE => {
                 panning_dir.y += 1.0;
             }
 
-            KeyCode::Q => {
+            KeyCode::KeyQ => {
                 panning_dir.y -= 1.0;
             }
 
-            KeyCode::A => {
+            KeyCode::KeyA => {
                 panning_dir.x -= 1.0;
             }
 
-            KeyCode::D => {
+            KeyCode::KeyD => {
                 panning_dir.x += 1.0;
             }
 
-            KeyCode::S => {
+            KeyCode::KeyS => {
                 translation_dir.y -= 1.0;
             }
 
-            KeyCode::W => {
+            KeyCode::KeyW => {
                 translation_dir.y += 1.0;
             }
 
