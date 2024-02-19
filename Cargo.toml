@@ -47,7 +47,6 @@ features = [
     "bevy_winit",
     "ktx2",
     "tonemapping_luts",
-    "wayland",
     "x11",
     "zstd",
 ]
