@@ -25,7 +25,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // Enables the system that synchronizes your `Transform`s and `LookTransform`s.
-        .add_plugin(LookTransformPlugin)
+        .add_plugins(LookTransformPlugin)
         .add_startup_system(setup)
         .add_system(move_camera_system);
 }
