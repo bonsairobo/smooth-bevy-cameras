@@ -23,9 +23,9 @@
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
 //!         // Enables the system that synchronizes your `Transform`s and `LookTransform`s.
-//!         .add_plugin(LookTransformPlugin)
-//!         .add_startup_system(setup)
-//!         .add_system(move_camera_system);
+//!         .add_plugins(LookTransformPlugin)
+//!         .add_systems(Startup, setup)
+//!         .add_systems(Update, move_camera_system);
 //! }
 //!
 //! fn setup(mut commands: Commands) {
