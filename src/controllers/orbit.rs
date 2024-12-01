@@ -164,7 +164,7 @@ pub fn control_system(
     let mut radius_scalar = 1.0;
     let radius = transform.radius();
 
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     for event in events.read() {
         match event {
             ControlEvent::Orbit(delta) => {

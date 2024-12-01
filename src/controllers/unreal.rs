@@ -247,7 +247,7 @@ pub fn control_system(
     };
     let mut look_angles = LookAngles::from_vector(look_vector);
 
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     for event in events.read() {
         match event {
             ControlEvent::Locomotion(delta) => {
