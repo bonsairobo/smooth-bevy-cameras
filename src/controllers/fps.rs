@@ -154,7 +154,7 @@ pub fn control_system(
     let rot_y = yaw_rot * Vec3::Y;
     let rot_z = yaw_rot * Vec3::Z;
 
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     for event in events.read() {
         match event {
             ControlEvent::Rotate(delta) => {
