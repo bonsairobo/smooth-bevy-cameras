@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::mesh::PlaneMeshBuilder};
+use bevy::prelude::*;
 use smooth_bevy_cameras::{LookTransform, LookTransformBundle, LookTransformPlugin, Smoother};
 
 fn main() {
@@ -17,7 +17,7 @@ fn setup(
 ) {
     // plane
     commands.spawn((
-        Mesh3d(meshes.add(Mesh::from(PlaneMeshBuilder::from_size(Vec2::splat(5.0))))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(5.0, 5.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
     ));
 

@@ -1,4 +1,5 @@
 use crate::{LookAngles, LookTransform, LookTransformBundle, Smoother};
+use bevy::window::{PrimaryWindow, Window};
 
 use bevy::{
     app::prelude::*,
@@ -9,6 +10,7 @@ use bevy::{
     reflect::Reflect,
     time::Time,
     transform::components::Transform,
+    window::{CursorGrabMode, CursorOptions},
 };
 
 #[derive(Default)]
@@ -28,7 +30,8 @@ impl Plugin for FpsCameraPlugin {
     fn build(&self, app: &mut App) {
         let app = app
             .add_systems(PreUpdate, on_controller_enabled_changed)
-            .add_systems(Update, control_system)
+            .add_systems(Startup, init)
+            .add_systems(Update, (control_system, reset_cursor_system))
             .add_message::<ControlMessage>();
 
         if !self.override_input_system {
@@ -69,6 +72,8 @@ pub struct FpsCameraController {
     pub mouse_rotate_sensitivity: Vec2,
     pub translate_sensitivity: f32,
     pub smoothing_weight: f32,
+    /// If set to true, the cursor will be locked and hidden when the camera is active.
+    pub auto_hide_cursor: bool,
 }
 
 impl Default for FpsCameraController {
@@ -78,6 +83,7 @@ impl Default for FpsCameraController {
             mouse_rotate_sensitivity: Vec2::splat(0.2),
             translate_sensitivity: 2.0,
             smoothing_weight: 0.9,
+            auto_hide_cursor: true,
         }
     }
 }
@@ -88,13 +94,38 @@ pub enum ControlMessage {
     TranslateEye(Vec3),
 }
 
+/// A marker component for tracking when the cursor needs to be reset next frame
+#[derive(Component)]
+struct ResetCursorNextFrame;
+
 define_on_controller_enabled_changed!(FpsCameraController);
+
+fn init(
+    mut cursor_options: Single<&mut CursorOptions>,
+    mut commands: Commands,
+    cameras: Query<(Entity, &FpsCameraController)>,
+) {
+    // Set initial cursor state
+    cursor_options.grab_mode = CursorGrabMode::Locked;
+    cursor_options.visible = false;
+    
+    // Mark cursor to be reset in the next frame for any enabled camera
+    for (camera_entity, controller) in cameras.iter() {
+        if controller.enabled && controller.auto_hide_cursor {
+            cursor_options.visible = false;
+            cursor_options.grab_mode = CursorGrabMode::Locked;
+            commands.entity(camera_entity).insert(ResetCursorNextFrame);
+            break; // Only need to do this for one camera
+        }
+    }
+}
 
 pub fn default_input_map(
     mut messages: MessageWriter<ControlMessage>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut mouse_motion_messages: MessageReader<MouseMotion>,
     controllers: Query<&FpsCameraController>,
+    cursor_options: Single<&CursorOptions>,
 ) {
     // Can only control one camera at a time.
     let controller = if let Some(controller) = controllers.iter().find(|c| c.enabled) {
@@ -102,6 +133,10 @@ pub fn default_input_map(
     } else {
         return;
     };
+    
+    // Check if cursor is currently locked using the CursorOptions resource
+    let cursor_locked = cursor_options.grab_mode == CursorGrabMode::Locked;
+    
     let FpsCameraController {
         translate_sensitivity,
         mouse_rotate_sensitivity,
@@ -109,8 +144,11 @@ pub fn default_input_map(
     } = *controller;
 
     let mut cursor_delta = Vec2::ZERO;
-    for event in mouse_motion_messages.read() {
-        cursor_delta += event.delta;
+    // Only process mouse motion if cursor is locked
+    if cursor_locked {
+        for event in mouse_motion_messages.read() {
+            cursor_delta += event.delta;
+        }
     }
 
     messages.write(ControlMessage::Rotate(
@@ -135,16 +173,35 @@ pub fn default_input_map(
 }
 
 pub fn control_system(
+    mut commands: Commands,
     mut messages: MessageReader<ControlMessage>,
-    mut cameras: Query<(&FpsCameraController, &mut LookTransform)>,
+    mut cameras: Query<(Entity, &FpsCameraController, &mut LookTransform)>,
+    mut cursor_options: Single<&mut CursorOptions>,
+    key_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
     // Can only control one camera at a time.
-    let mut transform = if let Some((_, transform)) = cameras.iter_mut().find(|c| c.0.enabled) {
-        transform
-    } else {
+    let Some((entity, controller, mut transform)) = cameras.iter_mut().find_map(|(e, c, t)| {
+        c.enabled.then_some((e, c, t))
+    }) else {
         return;
     };
+
+    // Handle cursor locking
+    if controller.auto_hide_cursor {
+        if key_input.just_pressed(KeyCode::AltLeft) || key_input.just_pressed(KeyCode::AltRight) {
+            // Release cursor
+            cursor_options.grab_mode = CursorGrabMode::None;
+            cursor_options.visible = true;
+        } else if key_input.just_released(KeyCode::AltLeft) || key_input.just_released(KeyCode::AltRight) {
+            // Lock cursor and mark for reset
+            cursor_options.grab_mode = CursorGrabMode::Locked;
+            cursor_options.visible = false;
+            
+            // Mark cursor to be reset in the next frame
+            commands.entity(entity).insert(ResetCursorNextFrame);
+        }
+    }
 
     let look_vector = transform.look_direction().unwrap();
     let mut look_angles = LookAngles::from_vector(look_vector);
@@ -172,4 +229,22 @@ pub fn control_system(
     look_angles.assert_not_looking_up();
 
     transform.target = transform.eye + transform.radius() * look_angles.unit_vector();
+}
+
+
+/// System that resets the cursor position on the frame after locking
+fn reset_cursor_system(
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    mut camera_query: Query<(Entity, &mut ResetCursorNextFrame)>,
+    mut commands: Commands,
+) {
+    for (entity, _) in camera_query.iter_mut() {
+        if let Ok(mut window) = windows.single_mut() {
+            let center = Vec2::new(window.width() / 2.0, window.height() / 2.0);
+            let _ = window.set_cursor_position(Some(center));
+        }
+        
+        // Remove the marker component so this only runs once
+        commands.entity(entity).remove::<ResetCursorNextFrame>();
+    }
 }
