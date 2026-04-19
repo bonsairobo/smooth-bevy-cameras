@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::mesh::PlaneMeshBuilder};
+use bevy::{mesh::PlaneMeshBuilder, prelude::*};
 use smooth_bevy_cameras::{LookTransform, LookTransformBundle, LookTransformPlugin, Smoother};
 
 fn main() {
